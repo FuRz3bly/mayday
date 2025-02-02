@@ -14,7 +14,7 @@ const FAQ = () => {
     return (
         <Box m="20px">
             <Header title="FAQ" subtitle="Frequently asked question pages" />
-            <Box mt="30px"/>
+            <Box mt="20px"/>
             
             <Accordion defaultExpanded>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
