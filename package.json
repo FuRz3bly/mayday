@@ -1,8 +1,9 @@
 {
   "name": "mayday",
-  "version": "0.1.0",
+  "version": "0.0.3",
   "private": true,
   "dependencies": {
+    "@date-io/date-fns": "^3.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fullcalendar/core": "^6.1.15",
@@ -14,6 +15,7 @@
     "@mui/icons-material": "^6.4.0",
     "@mui/material": "^6.4.0",
     "@mui/x-data-grid": "^7.24.0",
+    "@mui/x-date-pickers": "^7.25.0",
     "@nivo/bar": "^0.88.0",
     "@nivo/core": "^0.88.0",
     "@nivo/geo": "^0.88.0",
@@ -24,6 +26,8 @@
     "@svgr/webpack": "^8.1.0",
     "@testing-library/react": "^16.2.0",
     "cra-template": "1.2.0",
+    "date-fns": "^2.30.0",
+    "firebase": "^11.2.0",
     "formik": "^2.4.6",
     "leaflet": "^1.9.4",
     "postcss": "^8.5.1",

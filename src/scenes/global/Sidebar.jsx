@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
+import { DataContext } from "../../data";
 import { tokens } from "../../theme";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
-import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
+//import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
@@ -39,6 +40,7 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { authUser } = useContext(DataContext);
   const [selected, setSelected] = useState("Dashboard");
 
   return (
@@ -79,9 +81,11 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                 alignItems="center"
                 ml="15px"
               >
-                <Typography variant="h3" color={colors.grey[100]}>
+                {/* Mayday Title */}
+                <Typography variant="h2" color={colors.grey[100]} fontWeight="bold">
                   MAYDAY
                 </Typography>
+                {/* Close Menu Burger */}
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon />
                 </IconButton>
@@ -107,10 +111,15 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                   fontWeight="bold"
                   sx={{ m: "10px 0 0 0" }}
                 >
-                  Juan Dela Cruz
+                  {authUser ? `${authUser.name?.first_name} ${authUser.name?.last_name}` : "User"}
                 </Typography>
                 <Typography variant="h5" color={colors.greenAccent[500]}>
-                  Fancy Admin
+                {authUser 
+                  ? authUser?.role?.name === 'responder' || authUser?.role?.name === 'admin' 
+                    ? `${capitalize(authUser?.role?.type)} ${capitalize(authUser?.role?.name)}` 
+                    : `${capitalize(authUser?.role?.name)} User` 
+                  : "Fancy Admin"
+                }
                 </Typography>
               </Box>
             </Box>
@@ -141,14 +150,14 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             />
             <Item
               title="Manage Reports"
-              to="/contacts"
+              to="/reports"
               icon={<FlagOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
               title="Manage Stations"
-              to="/invoices"
+              to="/stations"
               icon={<LocalPoliceOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
@@ -231,5 +240,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     </Box>
   );
 };
+
+const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 
 export default Sidebar;
