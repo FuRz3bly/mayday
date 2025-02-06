@@ -31,7 +31,7 @@ import AddUserForm from "../../components/AddUser"
 import EditUserForm from "../../components/EditUser";
 
 const Users = () => {
-  const { users, loading, startUsersListener, stopUsersListener } = useContext(DataContext); // Data Context
+  const { users, loadingUsers, startUsersListener, stopUsersListener } = useContext(DataContext); // Data Context
   const [isListening, setIsListening] = useState(false); // Check if Is Listening
   const theme = useTheme(); // For Usage of Themes
   const colors = tokens(theme.palette.mode); // Mode Appropriate Colors
@@ -48,7 +48,7 @@ const Users = () => {
 
   // Format Users For Table
   useEffect(() => {
-    if (!loading) {
+    if (!loadingUsers) {
       console.log("Users Data:", users);
       setFormattedUsers(
         users.map((user) => {
@@ -99,7 +99,7 @@ const Users = () => {
         })
       );
     }
-  }, [users, loading]);
+  }, [users, loadingUsers]);
 
   // Filtered Rows Based on selectedType
   const filteredRows = formattedUsers.filter((row) => {
@@ -680,7 +680,6 @@ const Users = () => {
       
       {/* Database Table */}
       <Box
-        m="0 0 0 0"
         height="75vh"
         sx={{
           "& .MuiDataGrid-root": {

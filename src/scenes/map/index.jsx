@@ -5,11 +5,13 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import { useEffect, useState } from "react";
+import { DataContext } from "../../data"; // Adjust path based on your structure
+import { useEffect, useState, useContext } from "react";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
 
 const Map = ({ isCollapsed }) => {
+  const { stations } = useContext(DataContext);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [mapCenter, setMapCenter] = useState(center);
@@ -86,7 +88,7 @@ const Map = ({ isCollapsed }) => {
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
             {/* Center Marker */}
-            <OSMMarker position={mapCenter} icon={getMarkerIcon("green")}>
+            {/* <OSMMarker position={mapCenter} icon={getMarkerIcon("green")}>
               <Popup>
                 <b>You are here!</b>
                 <br />
@@ -94,7 +96,24 @@ const Map = ({ isCollapsed }) => {
                 <br />
                 Longitude: {mapCenter.lng.toFixed(6)}
               </Popup>
-            </OSMMarker>
+            </OSMMarker> */}
+
+            {stations.map((station) => (
+              <OSMMarker
+                key={station.station.id}
+                position={[
+                  station.address.location.latitude,
+                  station.address.location.longitude,
+                ]}
+                icon={getMarkerIcon("orange")}
+              >
+                <Popup>
+                  <b>{station.station.name}</b>
+                  <br />
+                  {station.address.barangay}, {station.address.municipality}, {station.address.province}
+                </Popup>
+              </OSMMarker>
+            ))}
 
             {indangBoundary.length > 0 && (
               <>
