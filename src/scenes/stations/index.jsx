@@ -1,41 +1,62 @@
-import { useState, useEffect, useContext } from "react";
-import { Box, IconButton, Button, Typography, MenuItem, Select, FormControl, InputLabel, Tooltip, Dialog, DialogContent, useTheme } from "@mui/material";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarQuickFilter,
-  GridToolbarDensitySelector,
-  GridToolbarExport,
-  GridToolbarColumnsButton,
-  GridToolbarFilterButton,
-  GridPagination
-} from "@mui/x-data-grid";
-import { tokens } from "../../theme";
-import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined';
-import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
+// React & Hooks
+import { useState, useEffect, useContext } from "react";  
+
+// Material UI (MUI) Components  
+import {  
+  Box, IconButton, Button, Typography, MenuItem, Select,  
+  FormControl, InputLabel, Tooltip, Dialog, DialogContent, useTheme  
+} from "@mui/material";  
+
+// MUI Data Grid Components  
+import {  
+  DataGrid,  
+  GridToolbarContainer, GridToolbarQuickFilter,  
+  GridToolbarDensitySelector, GridToolbarExport,  
+  GridToolbarColumnsButton, GridToolbarFilterButton,  
+  GridPagination  
+} from "@mui/x-data-grid";  
+
+// Theme & Styling  
+import { tokens } from "../../theme";  
+
+// MUI Icons  
+import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined';  
+import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';  
 import DeleteSweepOutlinedIcon from '@mui/icons-material/DeleteSweepOutlined';
-import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined';
-import BorderColorOutlinedIcon from '@mui/icons-material/BorderColorOutlined';
-import AddLocationAltOutlinedIcon from '@mui/icons-material/AddLocationAltOutlined';
-//import { mockDataInvoices } from "../../data/mockData";
-import { DataContext } from "../../data";
-import Header from "../../components/Header";
-import { deleteDoc, updateDoc, doc, serverTimestamp, Timestamp } from "firebase/firestore";
-import { db } from "../../config/firebaseConfig";
-import AddStationForm from "../../components/AddStation";
-import EditStationForm from "../../components/EditStation";
+import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined';  
+import BorderColorOutlinedIcon from '@mui/icons-material/BorderColorOutlined';  
+import AddLocationAltOutlinedIcon from '@mui/icons-material/AddLocationAltOutlined';  
+
+// Data & Context  
+import { DataContext } from "../../data";  
+// import { mockDataInvoices } from "../../data/mockData"; // Commented out permanently
+
+// Local Components
+import Header from "../../components/Header";  
+import AddStationForm from "../../components/AddStation";  
+import EditStationForm from "../../components/EditStation";  
+
+// Firebase
+import { deleteDoc, updateDoc, doc, serverTimestamp } from "firebase/firestore";  
+import { db } from "../../config/firebaseConfig";  
 
 const Stations = () => {
-  const { stations, loadingStations, startStationsListener, stopStationsListener } = useContext(DataContext); // Data Context
-  const [isListening, setIsListening] = useState(false); // Check if Is Listening
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const [selectedStations, setSelectedStations] = useState([]); // Selected Stations
-  const [formattedStations, setFormattedStations] = useState([]); // Formatted Stations
-  const [editingStation, setEditingStation] = useState(null); // Editing Station
-  const [selectedType, setSelectedType] = useState("all"); // Highest Filter - Station Type
-  const [addVisible, setAddVisible] = useState(false); // Add Station Dialog State
-  const [editVisible, setEditVisible] = useState(false); // Edit Station Dialog State
+  const { 
+    stations, loadingStations, 
+    startStationsListener, stopStationsListener 
+  } = useContext(DataContext); // Stations and listeners  
+
+  const theme = useTheme(); // MUI Theme Hook
+  const colors = tokens(theme.palette.mode); // Theme Colors  
+
+  const [isListening, setIsListening] = useState(false); // If the Table has Real-time updates  
+  const [selectedType, setSelectedType] = useState("all"); // Filter based on Station Type 
+  const [selectedStations, setSelectedStations] = useState([]); // Selected Stations  
+  const [formattedStations, setFormattedStations] = useState([]); // Format Stations for Display
+  const [editingStation, setEditingStation] = useState(null); // Edit this Station 
+  const [addVisible, setAddVisible] = useState(false); // Add Station Dialog Visibility
+  const [editVisible, setEditVisible] = useState(false); // Edit Station Dialog Visibility
+
 
   // Format Stations For Table
   useEffect(() => {
@@ -321,12 +342,12 @@ const Stations = () => {
           display: "flex", 
           justifyContent: "space-between", 
           alignItems: "center", 
-          p: 2, 
+          p: 1, 
           backgroundColor: colors.blueAccent[700] 
         }}
       >
         {/* Left Section: Selection Counter */}
-        <Typography color={colors.grey[100]} fontSize="14px">
+        <Typography color={colors.grey[100]} fontSize="14px" ml={2}>
           {selectedStations.length > 0 && `${selectedStations.length} selected`}
         </Typography>
         {/* Default Pagination Component */}
@@ -500,7 +521,7 @@ const checkKeyExpiration = (keyDate) => {
   if (!keyDate) return { status: "Expired", timeRemaining: "N/A" };
 
   const now = new Date(); // Current time
-  const keyDayStart = new Date(keyDate.getFullYear(), keyDate.getMonth(), keyDate.getDate(), 0, 0, 0);
+  //const keyDayStart = new Date(keyDate.getFullYear(), keyDate.getMonth(), keyDate.getDate(), 0, 0, 0);
   const keyDayEnd = new Date(keyDate.getFullYear(), keyDate.getMonth(), keyDate.getDate(), 23, 59, 59);
 
   if (now > keyDayEnd) {

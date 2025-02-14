@@ -1,6 +1,6 @@
 {
   "name": "mayday",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "private": true,
   "dependencies": {
     "@date-io/date-fns": "^3.2.0",
@@ -27,9 +27,11 @@
     "@testing-library/react": "^16.2.0",
     "cra-template": "1.2.0",
     "date-fns": "^2.30.0",
+    "dotenv": "^16.4.7",
     "firebase": "^11.2.0",
     "formik": "^2.4.6",
     "leaflet": "^1.9.4",
+    "node-fetch": "^3.3.2",
     "postcss": "^8.5.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

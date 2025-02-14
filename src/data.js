@@ -8,13 +8,18 @@ export const DataContext = createContext();
 
 // DataProvider Component
 export const DataProvider = ({ children }) => {
+  const [authUser, setAuthUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [stations, setStations] = useState([]);
-  const [authUser, setAuthUser] = useState(null);
+  const [reports, setReports] = useState([]);
+
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingStations, setLoadingStations] = useState(false);
+  const [loadingReports, setLoadingReports] = useState(false);
+
   const unsubscribeUsersRef = useRef(null);
   const unsubscribeStationsRef = useRef(null);
+  const unsubscribeReportsRef = useRef(null);
   const unsubscribeAuthRef = useRef(null);
 
   // Function to start the real-time listener for users
@@ -73,6 +78,34 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+  // Function to start the real-time listener for reports
+  const startReportsListener = () => {
+    setLoadingReports(true);
+    unsubscribeReportsRef.current = onSnapshot(
+      collection(db, "reports"),
+      (querySnapshot) => {
+        const reportData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setReports(reportData);
+        setLoadingReports(false);
+      },
+      (error) => {
+        console.error("Error fetching reports:", error);
+        setLoadingReports(false);
+      }
+    );
+  };
+
+  // Function to stop the real-time listener for reports
+  const stopReportsListener = () => {
+    if (unsubscribeReportsRef.current) {
+      unsubscribeReportsRef.current();
+      unsubscribeReportsRef.current = null;
+    }
+  };
+
   // Listen for authentication state changes
   useEffect(() => {
     unsubscribeAuthRef.current = onAuthStateChanged(auth, async (user) => {
@@ -100,23 +133,28 @@ export const DataProvider = ({ children }) => {
   }, []);
 
   // Memoize values to optimize performance
+  const memoizedAuthUser = useMemo(() => authUser, [authUser]);
   const memoizedUsers = useMemo(() => users, [users]);
   const memoizedStations = useMemo(() => stations, [stations]);
-  const memoizedAuthUser = useMemo(() => authUser, [authUser]);
+  const memoizedReports = useMemo(() => reports, [reports]);
 
   return (
     <DataContext.Provider
       value={{
+        authUser: memoizedAuthUser,
         users: memoizedUsers,
         stations: memoizedStations,
-        authUser: memoizedAuthUser,
+        reports: memoizedReports,
         setAuthUser,
         loadingUsers,
         loadingStations,
+        loadingReports,
         startUsersListener,
         stopUsersListener,
         startStationsListener,
         stopStationsListener,
+        startReportsListener,
+        stopReportsListener,
       }}
     >
       {children}

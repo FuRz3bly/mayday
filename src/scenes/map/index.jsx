@@ -1,27 +1,41 @@
-import { Box, useTheme, Button } from "@mui/material";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+// React & Hooks
+import { useEffect, useState, useContext } from "react";
+
+// Material UI Components
+import { Box, useTheme, Tooltip, IconButton } from "@mui/material";
+import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined';
+import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined';
+
+// Google Maps Components
+//import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+
+// Leaflet Map Components
 import { MapContainer, TileLayer, Popup, Marker as OSMMarker, Polygon, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import { DataContext } from "../../data"; // Adjust path based on your structure
-import { useEffect, useState, useContext } from "react";
-import Header from "../../components/Header";
+
+// Context & Theming
+import { DataContext } from "../../data";
 import { tokens } from "../../theme";
 
+// Local Data and Components
+import Header from "../../components/Header";
+import boundaryData from "../../data/indangBoundary.json";
+
 const Map = ({ isCollapsed }) => {
-  const { stations } = useContext(DataContext);
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const [mapCenter, setMapCenter] = useState(center);
-  const [mapType, setMapType] = useState("osm");
-  const [indangBoundary, setIndangBoundary] = useState([]);
+  const { stations, startStationsListener, stopStationsListener } = useContext(DataContext); // Context for Station data  
+  const theme = useTheme(); // MUI Theme Hook  
+  const colors = tokens(theme.palette.mode); // Color tokens based on Theme Mode  
 
-  const googleApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-  const geoapifyApiKey = process.env.REACT_APP_GEOAPIFY_API_KEY;
+  const [mapCenter, setMapCenter] = useState(center); // State for map center  
+  const [indangBoundary, setIndangBoundary] = useState([]); // State for Indang boundary data  
+  const [isListening, setIsListening] = useState(false); // State to track if station listener is active  
 
-  useEffect(() => {
+  const geoapifyApiKey = process.env.REACT_APP_GEOAPIFY_API_KEY; // API key for Geoapify services  
+
+  /* useEffect(() => {
     const fetchBoundary = async () => {
       try {
         const response = await fetch(
@@ -51,32 +65,47 @@ const Map = ({ isCollapsed }) => {
     if (geoapifyApiKey) {
       fetchBoundary();
     }
-  }, [geoapifyApiKey]);
+  }, [geoapifyApiKey]); */
+
+  useEffect(() => {
+    setIndangBoundary([boundaryData.coordinates]);
+  }, []);
+
+  // Toggle Real-time Listener
+  const handleToggleListener = () => {
+    if (isListening) {
+      stopStationsListener();
+    } else {
+      startStationsListener();
+    }
+    setIsListening(!isListening);
+  };
 
   return (
     <Box m="20px">
       <Header title="MAP" subtitle="View your current location" />
-      <Box mt="10px" display="flex" gap="10px">
-        <Button variant="contained" onClick={() => setMapType("google")}>
-          Google Maps
-        </Button>
-        <Button variant="contained" onClick={() => setMapType("osm")}>
-          OpenStreetMap
-        </Button>
+      {/* Listener Toggle Buttons */}
+      <Box mt="10px" display="flex" gap={1}>
+        <Tooltip 
+          title={isListening ? "Stop Listening" : "Start Listening"} 
+          placement="bottom" 
+          sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
+        >
+          <IconButton 
+            onClick={handleToggleListener} 
+            color={isListening ? "secondary" : "default"}
+            sx={{ fontSize: "2rem", padding: "5px" }}
+          >
+            {isListening ? (
+              <ToggleOnOutlinedIcon sx={{ fontSize: "1.5rem" }} />
+            ) : (
+              <ToggleOffOutlinedIcon sx={{ fontSize: "1.5rem" }} />
+            )}
+          </IconButton>
+        </Tooltip>
       </Box>
-      <Box mt="20px">
-        {mapType === "google" ? (
-          googleApiKey ? (
-            <LoadScript googleMapsApiKey={googleApiKey}>
-              <GoogleMap mapContainerStyle={containerStyle} center={mapCenter} zoom={12}>
-                <Marker position={mapCenter} />
-              </GoogleMap>
-            </LoadScript>
-          ) : (
-            <p style={{ color: "red" }}>Error: Google Maps API Key is missing.</p>
-          )
-        ) : (
-          <MapContainer 
+      <Box mt="10px">
+          <MapContainer
             center={mapCenter}
             zoom={12} 
             style={containerStyle}
@@ -98,6 +127,7 @@ const Map = ({ isCollapsed }) => {
               </Popup>
             </OSMMarker> */}
 
+            {/* Station Markers */}
             {stations.map((station) => (
               <OSMMarker
                 key={station.station.id}
@@ -115,6 +145,7 @@ const Map = ({ isCollapsed }) => {
               </OSMMarker>
             ))}
 
+            {/* Indang Boundary */}
             {indangBoundary.length > 0 && (
               <>
                 {/* Boundary Outline */}
@@ -144,7 +175,6 @@ const Map = ({ isCollapsed }) => {
               </>
             )}
           </MapContainer>
-        )}
       </Box>
     </Box>
   );

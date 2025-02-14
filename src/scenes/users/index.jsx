@@ -486,12 +486,12 @@ const Users = () => {
           display: "flex", 
           justifyContent: "space-between", 
           alignItems: "center", 
-          p: 2, 
+          p: 1, 
           backgroundColor: colors.blueAccent[700] 
         }}
       >
         {/* Left Section: Selection Counter */}
-        <Typography color={colors.grey[100]} fontSize="14px">
+        <Typography color={colors.grey[100]} fontSize="14px" ml={2}>
           {selectedUsers.length > 0 && `${selectedUsers.length} selected`}
         </Typography>
         {/* Default Pagination Component */}
