@@ -16,7 +16,7 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
     const isNonMobile = useMediaQuery("(min-width:600px)");
 
     const handleEditSubmit = async (values) => {
-        const roleSuffixes = { responder: "@respo", admin: "@admin" };
+        //const roleSuffixes = { responder: "@respo", admin: "@admin" };
     
         // Extract IDs to exclude them from comparison
         const { userId, id, firstName, lastName, station, ...filteredValues } = values;

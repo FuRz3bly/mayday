@@ -1,6 +1,6 @@
-import { Box, Button, TextField, useTheme, Autocomplete, MenuItem, IconButton, InputAdornment } from "@mui/material";
+import { Box, Button, TextField, Autocomplete, MenuItem, IconButton, InputAdornment } from "@mui/material";
 import Header from "./Header";
-import { tokens } from "../theme";
+//import { tokens } from "../theme";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Formik, FieldArray } from "formik";
 import * as yup from "yup";
@@ -10,8 +10,8 @@ import { db } from "../config/firebaseConfig";
 import { doc, updateDoc, GeoPoint } from "firebase/firestore";
 
 const EditStationForm = ({ station, onClose }) => {
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
+    //const theme = useTheme();
+    //const colors = tokens(theme.palette.mode);
     const isNonMobile = useMediaQuery("(min-width:600px)");
 
     const handleEditSubmit = async (values) => {

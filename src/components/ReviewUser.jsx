@@ -28,7 +28,7 @@ const ReviewUser = ({ onClose, user }) => {
     const [rejectReason, setRejectReason] = useState("");
     const [customReason, setCustomReason] = useState(false);
     const [customReasonText, setCustomReasonText] = useState("");
-    const [requestMessage, setRequestMessage] = useState("");
+    //const [requestMessage, setRequestMessage] = useState("");
 
     // Generate a simple hashed key from user_id + auth_uid using Web Crypto API
     const generateKey = async (user_id, auth_uid) => {

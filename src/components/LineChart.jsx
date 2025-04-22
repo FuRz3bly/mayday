@@ -147,6 +147,7 @@ const LineChart = ({ responses = [], isCustomLineColors = false, isDashboard = f
         return { filledResponseData, yMin, yMax };
     };
     
+    // eslint-disable-next-line
     const memoizedData = useMemo(() => processResponseData(responses, primaryFilter), [responses, primaryFilter]);
     const { filledResponseData, yMin, yMax } = memoizedData;
   

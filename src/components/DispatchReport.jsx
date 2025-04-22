@@ -1,5 +1,5 @@
 import { Box, Button, TextField, Autocomplete, useTheme } from "@mui/material";
-import { DateTimePicker, DatePicker } from "@mui/x-date-pickers";
+import { DateTimePicker } from "@mui/x-date-pickers";
 import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -744,7 +744,7 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
 };
 
 // Validation Schema
-const dispatchReportSchema = yup.object().shape({
+/* const dispatchReportSchema = yup.object().shape({
     reporter: yup.object().shape({
         name: yup.object().shape({
             first_name: yup.string().required("First name is required"),
@@ -786,7 +786,7 @@ const dispatchReportSchema = yup.object().shape({
     date: yup.object().shape({
         incident: yup.date().nullable().required("Incident date is required"),
     }),
-});
+}); */
 
 // Services Options
 const serviceOptions = [
