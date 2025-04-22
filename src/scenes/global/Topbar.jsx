@@ -1,13 +1,13 @@
-import { Box, Icon, IconButton, Tooltip, Input, useTheme } from "@mui/material";
+import { Box, IconButton, Tooltip, useTheme } from "@mui/material";
 import { useContext } from "react";
 import { ColorModeContext, tokens } from "../../theme";
-import InputBase from "@mui/material/InputBase";
+//import InputBase from "@mui/material/InputBase";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-import SearchIcon from "@mui/icons-material/SearchOffOutlined";
+//import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
+//import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+//import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+//import SearchIcon from "@mui/icons-material/SearchOffOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../config/firebaseConfig"; // Import Firebase auth instance
@@ -33,10 +33,10 @@ const Topbar = () => {
         <Box display="flex" justifyContent="space-between" p={2}>
             {/* Search Bar */}
             <Box display="flex" backgroundColor={colors.primary[400]} borderRadius={"3px"}>
-                <InputBase sx={{ ml: 2, flex: 1 }} placeholder="Search" />
+                {/* <InputBase sx={{ ml: 2, flex: 1 }} placeholder="Search" />
                 <IconButton type="button" sx={{ p: 1 }}>
                     <SearchIcon />
-                </IconButton>
+                </IconButton> */}
             </Box>
             {/* Icons */}
             <Box display={'flex'}>
@@ -46,7 +46,7 @@ const Topbar = () => {
                         {theme.palette.mode === "dark" ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
                     </IconButton>
                 </Tooltip>
-                <IconButton>
+                {/* <IconButton>
                     <NotificationsOutlinedIcon />
                 </IconButton>
                 <IconButton>
@@ -54,7 +54,7 @@ const Topbar = () => {
                 </IconButton>
                 <IconButton>
                     <PersonOutlinedIcon />
-                </IconButton>
+                </IconButton> */}
                 {/* Logout Button */}
                 <Tooltip title={"Logout"} placement="bottom" sx={{ bgcolor: "gray.700", color: "white" }}>
                     <IconButton onClick={handleLogout}>

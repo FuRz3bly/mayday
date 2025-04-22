@@ -61,6 +61,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         "& .pro-menu-item.active": {
           color: "#6870fa !important",
         },
+        height: '105%'
       }}
     >
       <ProSidebar collapsed={isCollapsed}>
@@ -155,10 +156,17 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               selected={selected}
               setSelected={setSelected}
             />
-            <Item
+            {/* <Item
               title="Manage Stations"
               to="/stations"
               icon={<LocalPoliceOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            /> */}
+            <Item
+              title="Manage Map"
+              to="/map"
+              icon={<MapOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
@@ -170,13 +178,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             >
               Pages
             </Typography>
-            <Item
-              title="View Map"
-              to="/map"
-              icon={<MapOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
             {/* <Item
               title="Profile Form"
               to="/form"

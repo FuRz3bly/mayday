@@ -31,23 +31,28 @@ const EditStationForm = ({ station, onClose }) => {
                     parseFloat(values.address.location.longitude)
                 ),
             },
-            contacts: {
-                website: values.contacts.website,
-            },
             key: {
                 date: station?.key?.date || null,
                 pass: station?.key?.pass || null,
             },
             service: {
                 hours: values.service?.hours ? values.service.hours.toLowerCase() : "everyday",
-                vehicle: station?.service?.vehicle || null,
+                vehicle: values.service?.vehicle?.length !== 0 ? values.service?.vehicle : null,
             },
             responders: station?.responders || [],
         };
     
-        // Only include phone if it has valid numbers
-        if (values.contacts.phone && values.contacts.phone.some(phone => phone.trim() !== "")) {
-            formattedData.contacts.phone = values.contacts.phone.filter(phone => phone.trim() !== "");
+        // Only include contacts if phone or website have valid data
+        const validPhones = values.contacts.phone?.filter(phone => phone.trim() !== "") || [];
+        const validWebsite = values.contacts.website?.trim() !== "" ? values.contacts.website : null;
+
+        if (validPhones.length > 0 || validWebsite) {
+            formattedData.contacts = {
+                phone: validPhones.length > 0 ? validPhones : undefined,
+                website: validWebsite || undefined,
+            };
+        } else {
+            formattedData.contacts = null;
         }
     
         try {
@@ -85,7 +90,13 @@ const EditStationForm = ({ station, onClose }) => {
                         website: station?.contacts?.website || "",
                     },
                     service: {
-                        hours: station?.service?.hours ? capitalize(station?.service?.hours) : ""
+                        hours: station?.service?.hours ? capitalize(station?.service?.hours) : "",
+                        vehicle: station?.service?.vehicle?.length
+                            ? station.service.vehicle.map(v => ({
+                                ambulance: v.ambulance || false,
+                                firetruck: v.firetruck || false
+                            }))
+                            : null
                     },
                 }}
                 validationSchema={stationSchema}
@@ -243,7 +254,89 @@ const EditStationForm = ({ station, onClose }) => {
                                 />
                                 )}
                             />
-                            
+
+                            {/* Service Vehicle */}
+                            <Autocomplete
+                                multiple
+                                options={["Ambulance", "Firetruck", "None"]}
+                                value={
+                                    values.service.vehicle === null || values.service.vehicle.length === 0
+                                        ? ["None"]
+                                        : [...new Set(values.service.vehicle.flatMap(v =>
+                                            v.ambulance ? ["Ambulance"] : v.firetruck ? ["Firetruck"] : []
+                                        ))]
+                                }
+                                onChange={(event, newValue) => {
+                                    if (newValue.includes("None") && newValue.length > 1) {
+                                        // Remove "None" if another option is selected
+                                        newValue = newValue.filter(v => v !== "None");
+                                    }
+
+                                    if (newValue.length === 0 || newValue.includes("None")) {
+                                        setFieldValue("service.vehicle", []); // Empty array for "None"
+                                    } else {
+                                        const updatedVehicles = newValue.map(v =>
+                                            v === "Ambulance" ? { ambulance: true } : { firetruck: true }
+                                        );
+                                        setFieldValue("service.vehicle", updatedVehicles);
+                                    }
+                                }}
+                                onBlur={handleBlur}
+                                sx={{
+                                    gridColumn: values.service.vehicle === null || values.service.vehicle.length === 0 
+                                        ? "span 4" 
+                                        : [...new Set(values.service.vehicle.flatMap(v =>
+                                            v.ambulance ? ["Ambulance"] : v.firetruck ? ["Firetruck"] : []
+                                        ))].length === 2 
+                                            ? "span 2" 
+                                            : "span 3"
+                                }}                                
+                                disableCloseOnSelect
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        fullWidth
+                                        variant="filled"
+                                        label="Service Vehicles"
+                                        name="service.vehicle"
+                                        error={!!touched.service?.vehicle && !!errors.service?.vehicle}
+                                        helperText={touched.service?.vehicle && errors.service?.vehicle}
+                                    />
+                                )}
+                            />
+
+                            {/* Services Count */}
+                            {(() => {
+                                const vehicleCounts = [
+                                    { type: "Firetruck", key: "firetruck", count: values.service.vehicle?.filter(v => v.firetruck).length || 0 },
+                                    { type: "Ambulance", key: "ambulance", count: values.service.vehicle?.filter(v => v.ambulance).length || 0 }
+                                ].filter(v => v.count > 0);
+
+                                const handleCountChange = (vehicleKey, newCount) => {
+                                    const count = Math.max(0, Number(newCount) || 0); // Ensure non-negative integer
+                                    const updatedVehicles = Array.from({ length: count }, () => ({ [vehicleKey]: true }));
+                                    setFieldValue("service.vehicle", [
+                                        ...values.service.vehicle.filter(v => !v[vehicleKey]),
+                                        ...updatedVehicles
+                                    ]);
+                                };
+
+                                return vehicleCounts.length > 0 ? (
+                                    vehicleCounts.map((v) => (
+                                        <TextField
+                                            key={v.type}
+                                            fullWidth
+                                            variant="filled"
+                                            label={v.type}
+                                            type="number"
+                                            value={v.count}
+                                            onChange={(e) => handleCountChange(v.key, e.target.value)}
+                                            sx={{ gridColumn: "span 1" }}
+                                        />
+                                    ))
+                                ) : null; // Return nothing if no vehicles are selected
+                            })()}
+
                             {/* Phone Numbers (Dynamic) */}
                             <FieldArray name="contacts.phone">
                                 {({ push, remove }) => (
@@ -341,7 +434,7 @@ const stationSchema = yup.object().shape({
         phone: yup.array()
             .of(
                 yup.string()
-                    .matches(/^\d{11}$/, "Phone number must be exactly 11 digits")
+                    .matches(/^\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4}$|^\d{11}$/, "Phone number must be in a valid format")
             )
             .max(3, "You can only add up to 3 phone numbers"),
         website: yup.string()

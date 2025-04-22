@@ -3,7 +3,7 @@ import { Box, Button, TextField, Autocomplete, useTheme } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import { Formik } from "formik";
 import { db } from "../config/firebaseConfig";
-import { setDoc, getDoc, doc, GeoPoint ,Timestamp } from "firebase/firestore";
+import { setDoc, doc, GeoPoint ,Timestamp, runTransaction } from "firebase/firestore";
 import * as yup from "yup";
 //import { tokens } from "../theme";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -13,35 +13,52 @@ const AddReportForm = ({ onClose, users }) => {
     const theme = useTheme();
     const isNonMobile = useMediaQuery("(min-width:600px)");
 
-    const generateID = async (serviceType, barangayName) => {
+    const generateID = async (serviceType, barangayName, dateParam = null) => {
         try {
-          // Generate a 4-character random hex (A-E, 1-9)
-          //const chars = "ABCDE123456789";
-          //const hexID = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-      
-          const barangayCode = barangayCodes[barangayName] || "UNK"; // Default to "UNK" (Unknown) if not found
-      
-          // Get current date in YYYYMMDD format
-          const today = new Date();
-          const formattedDate = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}`;
-      
-          // Reference to the report counter document in Firestore
-          const counterRef = doc(db, "metadata", "reports_count");
-          const counterSnap = await getDoc(counterRef);
-      
-          // Retrieve and increment report count
-          const newCount = (counterSnap.exists() ? counterSnap.data().count : 0) + 1;
-      
-          // Format Report ID: IND-YYYYMMDD-TSSSSS-BBB-HHHH
-          const reportID = `IND-${formattedDate}-${serviceType}${String(newCount).padStart(5, "0")}-${barangayCode}`;
-      
-          // Update Firestore with the new count
-          await setDoc(counterRef, { count: newCount }, { merge: true });
-      
-          return reportID;
+            if (typeof serviceType !== "number" || serviceType < 0 || serviceType > 3) {
+                throw new Error("Invalid service type. Must be 0 to 3.");
+            }
+
+            // Generate a 4-character random hex (A-E, 1-9)
+            //const chars = "ABCDE123456789";
+            //const hexID = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+        
+            const barangayCode = barangayCodes[barangayName] || "UNK"; // Default to "UNK" (Unknown) if not found
+        
+            // Use provided date or current date
+            const dateObj = dateParam ? new Date(dateParam) : new Date();
+            if (isNaN(dateObj)) throw new Error("Invalid date parameter.");
+
+            // Get date in YYYYMMDD and YYYY-MM-DD formats
+            const compressedDate = `${dateObj.getFullYear()}${String(dateObj.getMonth() + 1).padStart(2, "0")}${String(dateObj.getDate()).padStart(2, "0")}`;
+            const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}`;
+        
+            // Reference Firestore document for today's records
+            const dailyRef = doc(db, "metadata", "daily", "records", formattedDate);
+
+            // Transaction to update the count safely
+            const newCount = await runTransaction(db, async (transaction) => {
+                const dailySnap = await transaction.get(dailyRef);
+
+                let count = 1; // Default if no existing count
+                if (dailySnap.exists()) {
+                    const data = dailySnap.data();
+                    count = (data.reports ?? 0) + 1; // Increment report count
+                }
+
+                // Update Firestore with the new count
+                transaction.set(dailyRef, { reports: count }, { merge: true });
+
+                return count;
+            });
+        
+            // Format Report ID: IND-YYYYMMDD-TSSSSS-BBB-HHHH
+            const reportID = `IND-${compressedDate}-${serviceType}${String(newCount).padStart(5, "0")}-${barangayCode}`;
+        
+            return reportID;
         } catch (error) {
-          console.error("Error generating report ID:", error);
-          return null;
+            console.error("Error generating report ID:", error);
+            return null;
         }
     };
 
@@ -50,9 +67,10 @@ const AddReportForm = ({ onClose, users }) => {
             // Extract values for ID generation
             const serviceType = values.service; // 0, 1, 2, or 3
             const barangayName = values.address.barangay;
+            const incidentDate = values.date.incident ? new Date(values.date.incident) : new Date();
     
             // Generate the report ID
-            const reportID = await generateID(serviceType, barangayName);
+            const reportID = await generateID(serviceType, barangayName, incidentDate);
             if (!reportID) {
                 console.error("Failed to generate report ID");
                 alert("Failed to generate report ID. Please try again.");
@@ -63,6 +81,7 @@ const AddReportForm = ({ onClose, users }) => {
             const formattedReport = {
                 id: reportID,
                 ...values,
+                type: values.type,
                 address: {
                     ...values.address,
                     location: new GeoPoint(
@@ -71,7 +90,7 @@ const AddReportForm = ({ onClose, users }) => {
                     ),
                 },
                 date: {
-                    incident: values.date.incident ? Timestamp.fromDate(new Date(values.date.incident)) : null,
+                    incident: values.date.incident ? Timestamp.fromDate(incidentDate) : null,
                 },
                 status: 0,
                 time: {
@@ -168,6 +187,48 @@ const AddReportForm = ({ onClose, users }) => {
                                                 !!errors.reporter?.user_id
                                             }
                                             helperText={touched.reporter?.user_id && errors.reporter?.user_id}
+                                        />
+                                    )}
+                                />
+
+                                {/* Type(s) */}
+                                <Autocomplete
+                                    multiple
+                                    options={["Fire", "Crime", "Medical"]}
+                                    value={(() => {
+                                        const selected = [];
+                                        if (values.type & 0b010) selected.push("Fire");
+                                        if (values.type & 0b001) selected.push("Crime");
+                                        if (values.type & 0b100) selected.push("Medical");
+                                        return selected;
+                                    })()}
+                                    sx={{ gridColumn: "span 4" }}
+                                    onChange={(event, newValue) => {
+                                        let typeBitmask = 0;
+                                        if (newValue.includes("Crime")) typeBitmask |= 0b001;
+                                        if (newValue.includes("Fire")) typeBitmask |= 0b010;
+                                        if (newValue.includes("Medical")) typeBitmask |= 0b100;
+
+                                        setFieldValue("type", typeBitmask);
+
+                                        // Determine the correct `service` value
+                                        let serviceValue = 0;
+                                        if (typeBitmask & 0b010) serviceValue |= 1; // Fire → Firetruck
+                                        if (typeBitmask & 0b100) serviceValue |= 2; // Medical → Ambulance
+
+                                        setFieldValue("service", serviceValue);
+                                    }}
+                                    onBlur={handleBlur}
+                                    disableCloseOnSelect
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            fullWidth
+                                            variant="filled"
+                                            label="Report Type"
+                                            name="type"
+                                            error={!!touched.type && !!errors.type}
+                                            helperText={touched.type && errors.type}
                                         />
                                     )}
                                 />
@@ -338,6 +399,10 @@ const reportSchema = yup.object().shape({
             .nullable()
             .required("Birthdate is required"),
     }),
+    type: yup
+        .number()
+        .oneOf([0, 1, 2, 3, 4, 5, 6, 7], "Invalid report type") // Ensures only valid bitmask values are allowed
+        .required("Report type is required"),
     service: yup
         .number()
         .oneOf([0, 1, 2, 3], "Invalid service type")
@@ -376,6 +441,7 @@ const initialValues = {
         phone: "",
         birthdate: null,
     },
+    type: 0,
     service: 0,
     address: {
         barangay: "",

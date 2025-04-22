@@ -6,13 +6,14 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "./Header";
 //import { tokens } from "../theme";
 import { DatePicker } from "@mui/x-date-pickers";
-import { auth, db } from "../config/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { db } from "../config/firebaseConfig";
+//import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { firebaseConfig } from "../config/firebaseConfig"
+import { doc, setDoc, getDoc,  updateDoc, serverTimestamp } from "firebase/firestore";
 
-const AddUserForm = ({ onClose }) => {
+const AddUserForm = ({ onClose, stations }) => {
   const theme = useTheme();
   //const colors = tokens(theme.palette.mode);
   const isNonMobile = useMediaQuery("(min-width:600px)");
@@ -22,10 +23,8 @@ const AddUserForm = ({ onClose }) => {
 
   const handleFormSubmit = async (values) => {
     try {
-      const { role, username, email, password, confirm_password, birthdate, ...restValues } = values;
+      const { role, email, password, confirm_password, station, birthdate, ...restValues } = values;
   
-      // Trim and update username
-      let updatedUsername = username.trim();
       const roleName = role?.name;
       const roleTypeId = role?.id || "D1"; // Default to D1 (Community)
 
@@ -33,14 +32,6 @@ const AddUserForm = ({ onClose }) => {
       const formattedBirthdate = birthdate 
       ? `${birthdate.getFullYear()}-${String(birthdate.getMonth() + 1).padStart(2, "0")}-${String(birthdate.getDate()).padStart(2, "0")}`
       : null;
-  
-      // Append appropriate suffix to username if not already present
-      const roleSuffixes = { responder: "@respo", admin: "@admin" };
-      const usernameSuffix = roleSuffixes[roleName] || "";
-  
-      if (usernameSuffix && !updatedUsername.endsWith(usernameSuffix)) {
-        updatedUsername += usernameSuffix;
-      }
   
       // Generate User ID
       const user_id = `${roleTypeId}${generateRandomId()}`;
@@ -51,18 +42,54 @@ const AddUserForm = ({ onClose }) => {
           ? { token: null, duty: false, duty_clock: null, last_login: null }
           : { token: null, last_login: null };
   
-      // Register user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user; // Firebase UID
+      // ✅ Create user without logging out the admin
+      const createUser = async (email, password) => {
+        const response = await fetch(
+          `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email,
+              password,
+              returnSecureToken: true,
+            }),
+          }
+        );
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        return { uid: data.localId, idToken: data.idToken };
+      };
+
+      // ✅ Send email verification manually
+      const sendEmailVerification = async (idToken) => {
+        await fetch(
+          `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${firebaseConfig.apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              requestType: "VERIFY_EMAIL",
+              idToken,
+            }),
+          }
+        );
+      };
+
+      // Get the Firebase UID without logging out the admin
+      const { uid, idToken } = await createUser(email, password);
+
+      // Send verification email
+      await sendEmailVerification(idToken);
+      console.log("Verification email sent to:", email);
   
       // Construct final user object (excluding password fields)
       const updatedValues = {
         ...restValues, // Includes all remaining values (excluding password)
-        username: updatedUsername,
         user_id, // Keep user_id as the document ID
         email: email,
         birthdate: formattedBirthdate,
-        auth_uid: user.uid, // Store Firebase Authentication UID
+        auth_uid: uid, // Store Firebase Authentication UID
         role: role,
         account: {
           access: true,
@@ -72,20 +99,60 @@ const AddUserForm = ({ onClose }) => {
         },
         photos: { id: null, profile: null },
         session,
-        ...(roleName === "community" && { verified: { id: false, barangay: false } })
+        verified: roleName === "community"
+          ? { id: false, barangay: false, email: false }
+          : { id: true, email: false },
       };
+
+      if (values.role?.name === "responder") {
+      updatedValues.station = {
+        name: station.name || "",
+        id: station.id || "",
+        rank: station.rank || "",
+      };
+      
+      const responderData = {
+        id: user_id,
+        role: updatedValues.role,
+        rank: values.station.rank || "",
+        address: updatedValues.address
+      };
+
+      try {
+          const stationRef = doc(db, "stations", values.station.id);
+          const stationSnap = await getDoc(stationRef);
+
+          if (stationSnap.exists()) {
+              const stationData = stationSnap.data();
+              let responders = stationData.responders || [];
+
+              // Check if responder already exists in station
+              const existingIndex = responders.findIndex((res) => res.id === user_id);
+              if (existingIndex !== -1) {
+                  responders[existingIndex] = responderData; // Update existing
+              } else {
+                  responders.push(responderData); // Add new
+              }
+
+              await updateDoc(stationRef, { responders });
+              console.log("Station responders updated successfully.");
+          }
+      } catch (error) {
+          console.error("Error updating station responders:", error);
+      }
+  };
   
       // Store user data in Firestore with user_id as the document ID
       await setDoc(doc(db, "users", user_id), updatedValues);
   
-      console.log("User added successfully!", user);
+      console.log("User added successfully!");
       alert("User registered successfully! ✅");
       onClose();
     } catch (error) {
       console.error("Error registering user:", error);
       alert("Error: " + error.message);
     }
-  };  
+  };
 
   return (
     <Box m="20px">
@@ -140,20 +207,6 @@ const AddUserForm = ({ onClose }) => {
                 error={!!touched.name?.last_name && !!errors.name?.last_name}
                 helperText={touched.name?.last_name && errors.name?.last_name}
                 sx={{ gridColumn: "span 2" }}
-              />
-
-              {/* Username */}
-              <TextField
-                fullWidth
-                variant="filled"
-                label="Username"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.username}
-                name="username"
-                error={!!touched.username && !!errors.username}
-                helperText={touched.username && errors.username}
-                sx={{ gridColumn: "span 4" }}
               />
 
               {/* Email */}
@@ -306,6 +359,55 @@ const AddUserForm = ({ onClose }) => {
                 />
               )}
 
+              {/* Station Selection */}
+              {values.role?.name === "responder" && (
+                <>
+                    {/* Rank */}
+                    <TextField
+                        fullWidth
+                        variant="filled"
+                        label="Rank"
+                        name="station.rank"
+                        value={values.station?.rank || ""}
+                        onChange={(event) => 
+                            setFieldValue("station", { ...values.station, rank: event.target.value })
+                        }
+                        onBlur={handleBlur}
+                        error={!!touched.station?.rank && !!errors.station?.rank}
+                        helperText={touched.station?.rank && errors.station?.rank}
+                        sx={{ gridColumn: "span 2" }}
+                    />
+
+                    {/* Station Selector */}
+                    <Autocomplete
+                        options={stations.filter((station) =>
+                            station.station?.type.includes(values.role?.type)
+                        )}
+                        getOptionLabel={(option) => option.station?.name || "Unknown Station"}
+                        value={stations.find((s) => s.station?.id === values.station?.id) || null}
+                        onChange={(event, newValue) => {
+                            setFieldValue("station", newValue 
+                                ? { name: newValue.station?.name, id: newValue.station?.id, rank: values.station?.rank || "" } 
+                                : null
+                            );
+                        }}
+                        onBlur={handleBlur}
+                        sx={{ gridColumn: "span 2" }}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                fullWidth
+                                variant="filled"
+                                label="Station"
+                                name="station"
+                                error={!!touched.station && !!errors.station}
+                                helperText={touched.station && errors.station}
+                            />
+                        )}
+                    />
+                </>
+              )}
+
               {/* Address: Barangay */}
               <Autocomplete
                 options={barangayOptions}
@@ -420,13 +522,17 @@ const AddUserForm = ({ onClose }) => {
 // Initial Form Values
 const initialValues = {
   name: { first_name: "", last_name: "" },
-  username: "",
   email: "",
   phone: "",
   birthdate: null,
   password: "",
   confirm_password: "",
   role: null,
+  station: {
+    name: "",
+    id: "",
+    rank: ""
+  },
   address: {
     barangay: "",
     municipality: "Indang",
@@ -453,7 +559,6 @@ const validationSchema = yup.object().shape({
     first_name: yup.string().required("Required"),
     last_name: yup.string().required("Required"),
   }),
-  username: yup.string().required("Required"),
   email: yup.string().email("Invalid email").required("Required"),
   phone: yup
   .string()
@@ -467,6 +572,7 @@ const validationSchema = yup.object().shape({
       .required("Required"),
   }),
   role: yup.mixed(),
+  station: yup.mixed(),
   password: yup.string().min(6, "Password must be at least 6 characters").required("Required"),
   confirm_password: yup
     .string()

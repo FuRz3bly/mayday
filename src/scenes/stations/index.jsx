@@ -246,7 +246,7 @@ const Stations = () => {
           {/* Listener Toggle Buttons */}
           <Box display="flex" gap={1}>
             <Tooltip 
-              title={isListening ? "Stop Listening" : "Start Listening"} 
+              title={isListening ? "Disconnect from Database" : "Connect to Database"}
               placement="bottom" 
               sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
             >
@@ -359,24 +359,26 @@ const Stations = () => {
           placement="top" 
           sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
         >
-          <Button
-            sx={{
-              backgroundColor: selectedStations.length > 0 ? colors.greenAccent[400] : colors.blueAccent[900],
-              color: colors.grey[900],
-              fontSize: "12px",
-              fontWeight: "bold",
-              padding: "5px 10px",
-              marginX: 1,
-              "&:hover": {
-                backgroundColor: selectedStations.length > 0 ? colors.greenAccent[500] : colors.blueAccent[800],
-              },
-            }}
-            onClick={handleDelete}
-            disabled={selectedStations.length === 0}
-          >
-            <DeleteSweepOutlinedIcon sx={{ mr: "10px" }} />
-            Delete
-          </Button>
+          <span>
+            <Button
+              sx={{
+                backgroundColor: selectedStations.length > 0 ? colors.greenAccent[400] : colors.blueAccent[900],
+                color: colors.grey[900],
+                fontSize: "12px",
+                fontWeight: "bold",
+                padding: "5px 10px",
+                marginX: 1,
+                "&:hover": {
+                  backgroundColor: selectedStations.length > 0 ? colors.greenAccent[500] : colors.blueAccent[800],
+                },
+              }}
+              onClick={handleDelete}
+              disabled={selectedStations.length === 0}
+            >
+              <DeleteSweepOutlinedIcon sx={{ mr: "10px" }} />
+              Delete
+            </Button>
+          </span>
         </Tooltip>
 
         {/* Edit Button */}
@@ -389,30 +391,32 @@ const Stations = () => {
           placement="top"
           sx={{ bgcolor: "gray.700", color: "white" }}
         >
-          <Button
-            sx={{
-              backgroundColor:
-                selectedStations.length === 1
-                  ? colors.greenAccent[400]
-                  : colors.blueAccent[900],
-              color: colors.grey[900],
-              fontSize: "12px",
-              fontWeight: "bold",
-              padding: "5px 10px",
-              marginX: 1,
-              "&:hover": {
+          <span>
+            <Button
+              sx={{
                 backgroundColor:
                   selectedStations.length === 1
-                    ? colors.greenAccent[500]
-                    : colors.blueAccent[800],
-              },
-            }}
-            onClick={handleEdit}
-            disabled={selectedStations.length !== 1} // Disable if multiple or no stations selected
-          >
-            <BorderColorOutlinedIcon sx={{ mr: "10px" }} />
-            Edit
-          </Button>
+                    ? colors.greenAccent[400]
+                    : colors.blueAccent[900],
+                color: colors.grey[900],
+                fontSize: "12px",
+                fontWeight: "bold",
+                padding: "5px 10px",
+                marginX: 1,
+                "&:hover": {
+                  backgroundColor:
+                    selectedStations.length === 1
+                      ? colors.greenAccent[500]
+                      : colors.blueAccent[800],
+                },
+              }}
+              onClick={handleEdit}
+              disabled={selectedStations.length !== 1} // Disable if multiple or no stations selected
+            >
+              <BorderColorOutlinedIcon sx={{ mr: "10px" }} />
+              Edit
+            </Button>
+          </span>
         </Tooltip>
 
         {/* Reset Key Button */}
@@ -421,24 +425,26 @@ const Stations = () => {
           placement="top" 
           sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
         >
-          <Button
-            sx={{
-              backgroundColor: selectedStations.length > 0 ? colors.greenAccent[400] : colors.blueAccent[900],
-              color: colors.grey[900],
-              fontSize: "12px",
-              fontWeight: "bold",
-              padding: "5px 10px",
-              marginX: 1,
-              "&:hover": {
-                backgroundColor: selectedStations.length > 0 ? colors.greenAccent[500] : colors.blueAccent[800],
-              },
-            }}
-            onClick={handleResetKey} // Toggle function
-            disabled={selectedStations.length === 0}
-          >
-            <VpnKeyOutlinedIcon sx={{ mr: "10px" }} />
-            {"Reset Key(s)"}
-          </Button>
+          <span>
+            <Button
+              sx={{
+                backgroundColor: selectedStations.length > 0 ? colors.greenAccent[400] : colors.blueAccent[900],
+                color: colors.grey[900],
+                fontSize: "12px",
+                fontWeight: "bold",
+                padding: "5px 10px",
+                marginX: 1,
+                "&:hover": {
+                  backgroundColor: selectedStations.length > 0 ? colors.greenAccent[500] : colors.blueAccent[800],
+                },
+              }}
+              onClick={handleResetKey} // Toggle function
+              disabled={selectedStations.length === 0}
+            >
+              <VpnKeyOutlinedIcon sx={{ mr: "10px" }} />
+              {"Reset Key(s)"}
+            </Button>
+          </span>
         </Tooltip>
       </Box>
     );

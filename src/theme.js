@@ -1,6 +1,6 @@
 import { createContext, useState, useMemo } from "react";
-import { createTheme, typographyClasses } from "@mui/material";
-import { light } from "@mui/material/styles/createPalette";
+import { createTheme } from "@mui/material";
+//import { light } from "@mui/material/styles/createPalette";
 
 // Color Design Tokens
 export const tokens = (mode) => ({
@@ -187,6 +187,10 @@ export const themeSettings = (mode) => {
             h6: {
                 fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
                 fontSize: 14,
+            },
+            h7: {
+                fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+                fontSize: 13,
             }
         }
     }

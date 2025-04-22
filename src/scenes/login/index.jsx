@@ -1,47 +1,32 @@
-import { Box, Button, TextField, Typography, Paper } from "@mui/material";
+import { Box, Button, TextField, Typography, Paper, InputAdornment, IconButton, CircularProgress } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Formik } from "formik";
 import { DataContext } from "../../data";
 import * as yup from "yup";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../../config/firebaseConfig"; // Import Firebase auth instance
+import { auth, db } from "../../config/firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
+
+import MaydayLogo from "../../assets/images/logo-192x192.png";
 
 const Login = () => {
   const { setAuthUser } = useContext(DataContext);
   const navigate = useNavigate();
   const [firebaseError, setFirebaseError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const handleLogin = async (values, { setSubmitting }) => {
     setFirebaseError(null);
     setSubmitting(true);
 
-    let emailOrUsername = values.emailOrUsername;
-    const isEmail = /\S+@\S+\.\S+/.test(emailOrUsername);
-    let email = emailOrUsername;
-
-    if (!isEmail) {
-        try {
-            const usersRef = collection(db, "users");
-            const q = query(usersRef, where("username", "==", emailOrUsername));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                throw new Error("Username not found.");
-            }
-
-            email = querySnapshot.docs[0].data().email;
-            if (!email) throw new Error("Email not found for the username.");
-        } catch (error) {
-            setFirebaseError(error.message);
-            setSubmitting(false);
-            return;
-        }
-    }
-
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, values.password);
+        const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
         const authUser = userCredential.user;
 
         // Fetch the user document from Firestore using auth_uid
@@ -58,7 +43,7 @@ const Login = () => {
 
         navigate("/");
     } catch (err) {
-        setFirebaseError("Invalid email/username or password. Try again.");
+        setFirebaseError("Invalid email or password. Try again.");
     }
 
     setSubmitting(false);
@@ -72,7 +57,41 @@ const Login = () => {
         alignItems: "center", 
         height: "100vh", 
         width: "100%", 
-        backgroundColor: "#2c4e80" // Dark Blue Background
+        position: "relative",
+        overflow: "hidden",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: `
+            radial-gradient(ellipse at top left, #000428 0%, transparent 70%),
+            radial-gradient(ellipse at bottom right, #004e92 0%, transparent 70%),
+            radial-gradient(ellipse at center, #1a2980 0%, #26d0ce 100%)
+          `,
+          backgroundSize: "200% 200%",
+          animation: "waveGradient 15s ease infinite",
+          zIndex: -1,
+        },
+        "@keyframes waveGradient": {
+          "0%": {
+            backgroundPosition: "0% 0%",
+          },
+          "25%": {
+            backgroundPosition: "100% 0%",
+          },
+          "50%": {
+            backgroundPosition: "100% 100%",
+          },
+          "75%": {
+            backgroundPosition: "0% 100%",
+          },
+          "100%": {
+            backgroundPosition: "0% 0%",
+          },
+        },
       }}
     >
       <Paper 
@@ -81,12 +100,26 @@ const Login = () => {
           padding: 4, 
           width: "400px", 
           textAlign: "center", 
-          backgroundColor: "#f2f0f0", // Light Background
-          borderRadius: "10px"
+          backgroundColor: "rgba(31, 42, 64, 0.9)", 
+          borderRadius: "10px",
+          boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.37)",
         }}
       >
-        <Typography variant="h3" gutterBottom sx={{ color: "#2c4e80", fontWeight: "bold" }}>
-          MAYDAY Login
+        {/* Logo */}
+        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+          <img 
+            src={MaydayLogo}
+            alt="Mayday Logo" 
+            style={{ 
+              height: '120px', 
+              width: 'auto',
+              marginBottom: '10px'
+            }} 
+          />
+        </Box>
+
+        <Typography variant="h4" gutterBottom sx={{ color: "#ffc55a", fontWeight: "500", mb: 3 }}>
+          Log in to Mayday
         </Typography>
         {firebaseError && <Typography color="error">{firebaseError}</Typography>}
         
@@ -95,64 +128,95 @@ const Login = () => {
           validationSchema={loginSchema}
           onSubmit={handleLogin}
         >
-          {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting }) => (
+          {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting, isValid, dirty }) => (
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column" }}>
+              {/* Email */}
               <TextField
-                label="Email or Username"
+                label="Email"
                 variant="outlined"
                 margin="normal"
                 fullWidth
-                name="emailOrUsername"
+                name="email"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.emailOrUsername}
-                error={!!touched.emailOrUsername && !!errors.emailOrUsername}
-                helperText={touched.emailOrUsername && errors.emailOrUsername}
+                value={values.email}
+                error={!!touched.email && !!errors.email}
+                helperText={touched.email && errors.email}
                 sx={{
-                  input: { color: "#2c4e80" },
-                  label: { color: "#2c4e80" },
+                  input: { color: "#fff" },
+                  "& .MuiInputLabel-root": { 
+                    color: "#fff",
+                    "&.Mui-focused": { color: "#ffc55a" },
+                  },
                   "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "#2c4e80" },
+                    "& fieldset": { borderColor: "#fff" },
                     "&:hover fieldset": { borderColor: "#ffc55a" },
                     "&.Mui-focused fieldset": { borderColor: "#ffc55a" },
                   },
                 }}
               />
+              {/* Password */}
               <TextField
                 label="Password"
                 variant="outlined"
                 margin="normal"
                 fullWidth
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.password}
                 error={!!touched.password && !!errors.password}
                 helperText={touched.password && errors.password}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleTogglePasswordVisibility}
+                        edge="end"
+                        sx={{ color: "#fff" }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
                 sx={{ 
-                  input: { color: "#2c4e80" }, // Dark blue text color
-                  label: { color: "#2c4e80" }, // Dark blue label color
+                  input: { color: "#fff" },
+                  "& .MuiInputLabel-root": { 
+                    color: "#fff",
+                    "&.Mui-focused": { color: "#ffc55a" }, 
+                  },
                   "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "#2c4e80" }, // Dark blue border
-                    "&:hover fieldset": { borderColor: "#ffc55a" }, // Yellow border on hover
-                    "&.Mui-focused fieldset": { borderColor: "#ffc55a" }, // Yellow border when focused
+                    "& fieldset": { borderColor: "#fff" },
+                    "&:hover fieldset": { borderColor: "#ffc55a" },
+                    "&.Mui-focused fieldset": { borderColor: "#ffc55a" },
                   }
                 }}
               />
+              {/* Sign In Button */}
               <Button 
                 type="submit" 
                 variant="contained" 
                 sx={{ 
                   mt: 2, 
-                  backgroundColor: "#ffc55a", // Yellow Button
-                  color: "#2c4e80",
-                  fontWeight: "bold",
-                  "&:hover": { backgroundColor: "#e0a82e" }
+                  height: "48px", // Fixed height for consistent button size
+                  backgroundColor: "#ffc55a", 
+                  color: "#000",
+                  "&:hover": { backgroundColor: "#e0a82e" },
+                  "&.Mui-disabled": { 
+                    backgroundColor: "rgba(255, 197, 90, 0.5)", 
+                    color: "rgba(0, 0, 0, 0.5)" 
+                  }
                 }} 
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isValid || !dirty}
               >
-                {isSubmitting ? "Logging in..." : "Login"}
+                {isSubmitting ? (
+                  <CircularProgress size={24} sx={{ color: "#fff" }} />
+                ) : (
+                  "Sign In"
+                )}
               </Button>
             </form>
           )}
@@ -162,15 +226,19 @@ const Login = () => {
   );
 };
 
-// ✅ Updated Validation Schema
+// Validation Schema
 const loginSchema = yup.object().shape({
-  emailOrUsername: yup.string().required("Email or Username is required"),
-  password: yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+  email: yup.string()
+    .email("Please enter a valid email address")
+    .required("Email is required"),
+  password: yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
 });
 
-// ✅ Updated Initial Form Values
+// Initial Form Values
 const initialValues = {
-  emailOrUsername: "", // Changed from 'email' to 'emailOrUsername'
+  email: "",
   password: "",
 };
 

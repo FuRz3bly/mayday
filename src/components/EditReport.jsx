@@ -89,8 +89,12 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
 
     // Submit Editted Report
     const handleEditSubmit = async (values) => {
+        // Determine if responders.providers is empty
+        const hasResponders = values.responders?.providers?.length > 0;
+
         const formattedReport = {
             ...values,
+            responders: hasResponders ? values.responders : null,
             reporter: {
                 ...values.reporter,
                 birthdate: values.reporter.birthdate instanceof Date 

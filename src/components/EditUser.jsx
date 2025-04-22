@@ -8,9 +8,9 @@ import { tokens } from "../theme";
 import { DatePicker } from "@mui/x-date-pickers";
 import { db } from "../config/firebaseConfig";
 import ForwardToInboxOutlinedIcon from '@mui/icons-material/ForwardToInboxOutlined';
-import { doc, updateDoc, serverTimestamp, deleteField } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp, deleteField } from "firebase/firestore";
 
-const EditUserForm = ({ user, onSubmit, onClose, onChangePass }) => {
+const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const isNonMobile = useMediaQuery("(min-width:600px)");
@@ -19,17 +19,12 @@ const EditUserForm = ({ user, onSubmit, onClose, onChangePass }) => {
         const roleSuffixes = { responder: "@respo", admin: "@admin" };
     
         // Extract IDs to exclude them from comparison
-        const { userId, id, firstName, lastName, ...filteredValues } = values;
+        const { userId, id, firstName, lastName, station, ...filteredValues } = values;
         const { id: _, ...filteredUser } = user; // Remove `id` but keep `user_id`
     
         // Check if the role has changed
         const roleChanged = values.role?.name && values.role?.name !== user.role?.name;
         const roleFromResponderToCommunity = user.role?.name === "responder" && values.role?.name === "community";
-    
-        // Remove existing role suffix if present
-        const cleanUsername = user.username
-            ? user.username.replace(/(@respo|@admin)$/, "").trim()
-            : "";
     
         // Construct the updated user object
         const updatedUser = {
@@ -43,15 +38,50 @@ const EditUserForm = ({ user, onSubmit, onClose, onChangePass }) => {
             birthdate: values.birthdate
                 ? `${values.birthdate.getFullYear()}-${String(values.birthdate.getMonth() + 1).padStart(2, "0")}-${String(values.birthdate.getDate()).padStart(2, "0")}`
                 : user.birthdate,
-            username: values.username?.trim()
-                ? `${values.username.trim().replace(/(@respo|@admin)$/, "").trim()}${roleSuffixes[values.role?.name] || ""}`
-                : cleanUsername,
         };
     
         // If role changed to "responder", initialize `duty` fields in session
         if (roleChanged && values.role?.name === "responder") {
             updatedUser.session = { ...user.session, duty: false, duty_clock: null };
-        }
+        };
+
+        if (values.role?.name === "responder") {
+            updatedUser.station = {
+                name: station.name || "",
+                id: station.id || "",
+                rank: station.rank || "",
+            };
+            
+            const responderData = {
+                id: updatedUser.user_id,
+                role: updatedUser.role,
+                rank: values.station.rank || "",
+                address: updatedUser.address
+            };
+
+            try {
+                const stationRef = doc(db, "stations", values.station.id);
+                const stationSnap = await getDoc(stationRef);
+    
+                if (stationSnap.exists()) {
+                    const stationData = stationSnap.data();
+                    let responders = stationData.responders || [];
+    
+                    // Check if responder already exists in station
+                    const existingIndex = responders.findIndex((res) => res.id === user.user_id);
+                    if (existingIndex !== -1) {
+                        responders[existingIndex] = responderData; // Update existing
+                    } else {
+                        responders.push(responderData); // Add new
+                    }
+    
+                    await updateDoc(stationRef, { responders });
+                    console.log("Station responders updated successfully.");
+                }
+            } catch (error) {
+                console.error("Error updating station responders:", error);
+            }
+        };
     
         // Check if there are any actual updates before writing to Firestore
         if (JSON.stringify(updatedUser) !== JSON.stringify(user)) {
@@ -90,7 +120,6 @@ const EditUserForm = ({ user, onSubmit, onClose, onChangePass }) => {
                     firstName: user?.name.first_name || "",
                     lastName: user?.name.last_name || "",
                     userId: user?.user_id || "",
-                    username: user?.username || "",
                     email: user?.email || "",
                     phone: user?.phone || "",
                     birthdate: user?.birthdate ? new Date(user.birthdate) : null,
@@ -100,6 +129,11 @@ const EditUserForm = ({ user, onSubmit, onClose, onChangePass }) => {
                         province: user?.address?.province || "Cavite",
                     },
                     role: user?.role ? { ...user.role } : null,
+                    station: {
+                        name: user?.station?.name || "",
+                        id: user?.station?.id || "",
+                        rank: user?.station?.rank || ""
+                    }
                 }}
                 validationSchema={editUserSchema}
             >
@@ -160,21 +194,6 @@ const EditUserForm = ({ user, onSubmit, onClose, onChangePass }) => {
                                 value={values.userId}
                                 name="userId"
                                 disabled
-                                sx={{ gridColumn: "span 4" }}
-                            />
-
-                            {/* Username */}
-                            <TextField
-                                fullWidth
-                                variant="filled"
-                                type="text"
-                                label="Username"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                value={values.username}
-                                name="username"
-                                error={!!touched.username && !!errors.username}
-                                helperText={touched.username && errors.username}
                                 sx={{ gridColumn: "span 4" }}
                             />
 
@@ -334,6 +353,55 @@ const EditUserForm = ({ user, onSubmit, onClose, onChangePass }) => {
                                 />
                             )}
 
+                            {/* Station Selection */}
+                            {values.role?.name === "responder" && (
+                                <>
+                                    {/* Rank */}
+                                    <TextField
+                                        fullWidth
+                                        variant="filled"
+                                        label="Rank"
+                                        name="station.rank"
+                                        value={values.station?.rank || ""}
+                                        onChange={(event) => 
+                                            setFieldValue("station", { ...values.station, rank: event.target.value })
+                                        }
+                                        onBlur={handleBlur}
+                                        error={!!touched.station?.rank && !!errors.station?.rank}
+                                        helperText={touched.station?.rank && errors.station?.rank}
+                                        sx={{ gridColumn: "span 2" }}
+                                    />
+
+                                    {/* Station Selector */}
+                                    <Autocomplete
+                                        options={stations.filter((station) =>
+                                            station.station?.type.includes(values.role?.type)
+                                        )}
+                                        getOptionLabel={(option) => option.station?.name || "Unknown Station"}
+                                        value={stations.find((s) => s.station?.id === values.station?.id) || null}
+                                        onChange={(event, newValue) => {
+                                            setFieldValue("station", newValue 
+                                                ? { name: newValue.station?.name, id: newValue.station?.id, rank: values.station?.rank || "" } 
+                                                : null
+                                            );
+                                        }}
+                                        onBlur={handleBlur}
+                                        sx={{ gridColumn: "span 2" }}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                fullWidth
+                                                variant="filled"
+                                                label="Station"
+                                                name="station"
+                                                error={!!touched.station && !!errors.station}
+                                                helperText={touched.station && errors.station}
+                                            />
+                                        )}
+                                    />
+                                </>
+                            )}
+
                             {/* Address: Barangay */}
                             <Autocomplete
                                 options={barangayOptions}
@@ -432,13 +500,13 @@ const phoneRegExp =
 const editUserSchema = yup.object().shape({
     firstName: yup.string().required("First name is required"),
     lastName: yup.string().required("Last name is required"),
-    username: yup.string().required("Username is required"),
     phone: yup.string().matches(phoneRegExp, "Invalid phone number").required("Phone is required"),
     birthdate: yup.date().nullable().required("Birthdate is required"),
     address: yup.object().shape({
         barangay: yup.string().required("Barangay is required"),
     }),
     role: yup.mixed(),
+    station: yup.mixed()
 });
 
 const generateFakePassword = () => {
