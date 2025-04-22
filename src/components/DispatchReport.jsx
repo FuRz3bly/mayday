@@ -1,7 +1,6 @@
 import { Box, Button, TextField, Autocomplete, useTheme } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import { Formik } from "formik";
-import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "./Header";
 import { tokens } from "../theme";

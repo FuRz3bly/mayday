@@ -55,6 +55,7 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                 };
             });
         }
+    // eslint-disable-next-line
     }, [selectedCoords, setFormValues]);
 
     const handleFormSubmit = async (values, { setSubmitting, resetForm }) => {

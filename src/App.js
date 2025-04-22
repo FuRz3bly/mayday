@@ -19,6 +19,7 @@ import Pie from "./scenes/pie";
 import Line from "./scenes/line";
 import Geography from "./scenes/geography";
 import PrivateRoute from "./components/PrivateRoute";
+import Missing from "./scenes/missing";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DataProvider } from "./data";
@@ -59,7 +60,13 @@ function App() {
                     <Route path="/pie" element={<Pie />} />
                     <Route path="/line" element={<Line />} />
                     <Route path="/geography" element={<Geography />} />
+
+                    {/* 404 Page for authenticated users */}
+                    <Route path="*" element={<Missing />} />
                   </Route>
+
+                  {/* 404 Page for unauthenticated users */}
+                  <Route path="*" element={<Missing />} />
                 </Routes>
               </main>
             </div>
