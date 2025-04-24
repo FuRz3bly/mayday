@@ -3,7 +3,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Formik } from "formik";
 import { DataContext } from "../../data";
 import * as yup from "yup";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "../../config/firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
@@ -17,10 +17,12 @@ const Login = () => {
   const [firebaseError, setFirebaseError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleTogglePasswordVisibility = () => {
+  // Toggle Password Visibility
+  const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);
   };
 
+  // Login Function
   const handleLogin = async (values, { setSubmitting }) => {
     setFirebaseError(null);
     setSubmitting(true);
@@ -29,19 +31,36 @@ const Login = () => {
         const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
         const authUser = userCredential.user;
 
-        // Fetch the user document from Firestore using auth_uid
+        // Fetch the user document from Firestore
         const usersRef = collection(db, "users");
         const q = query(usersRef, where("auth_uid", "==", authUser.uid));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
             const userDoc = querySnapshot.docs[0].data(); // Get user document data
+            
+            // Check if user is an admin
+            const isAdmin = 
+              userDoc.role && 
+              userDoc.role.id === "A1" && 
+              userDoc.role.name && 
+              userDoc.role.name.toLowerCase() === "admin";
+            
+            if (!isAdmin) {
+              // Sign out the user since they don't have admin privileges
+              await signOut(auth);
+              setFirebaseError("Access denied. Admin privileges required.");
+              setSubmitting(false);
+              return;
+            }
+            
             setAuthUser(userDoc); // Store it in DataProvider
+            navigate("/");
         } else {
+            // Sign out if user document not found
+            await signOut(auth);
             throw new Error("User document not found.");
         }
-
-        navigate("/");
     } catch (err) {
         setFirebaseError("Invalid email or password. Try again.");
     }
@@ -173,7 +192,7 @@ const Login = () => {
                     <InputAdornment position="end">
                       <IconButton
                         aria-label="toggle password visibility"
-                        onClick={handleTogglePasswordVisibility}
+                        onClick={handleTogglePassword}
                         edge="end"
                         sx={{ color: "#fff" }}
                       >
