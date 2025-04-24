@@ -304,16 +304,25 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                             }
                                         }
 
-                                        setFieldValue("responders.providers", [
-                                            {
-                                                station: {
-                                                    id: newValue.station.id,
-                                                    name: newValue.station.name,
-                                                    type: newValue.station.type,
-                                                },
-                                                service,
+                                        const newProvider = {
+                                            station: {
+                                                id: newValue.station.id,
+                                                name: newValue.station.name,
+                                                type: newValue.station.type,
                                             },
-                                        ]);
+                                            service,
+                                        };
+                                        
+                                        // Initialize personnel object when PNP is selected
+                                        if (newValue.station.id === PNPID) {
+                                            newProvider.personnel = {
+                                                name: { first_name: "", last_name: "" },
+                                                phone: "",
+                                                user_id: ""
+                                            };
+                                        }
+                                
+                                        setFieldValue("responders.providers", [newProvider]);
                                     } else {
                                         setFieldValue("responders.providers", []);
                                     }
@@ -655,7 +664,7 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                                 label="First Name"
                                                 onBlur={handleBlur}
                                                 onChange={handleChange}
-                                                value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel.name.first_name || ""}
+                                                value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel?.name?.first_name || ""}
                                                 name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.name.first_name`}
                                                 error={!!touched.name?.first_name && !!errors.name?.first_name}
                                                 helperText={touched.name?.first_name && errors.name?.first_name}
@@ -669,7 +678,7 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                                 label="Last Name"
                                                 onBlur={handleBlur}
                                                 onChange={handleChange}
-                                                value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel.name.last_name || ""}
+                                                value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel?.name?.last_name || ""}
                                                 name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.name.last_name`}
                                                 error={!!touched.name?.last_name && !!errors.name?.last_name}
                                                 helperText={touched.name?.last_name && errors.name?.last_name}
@@ -683,7 +692,7 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                                 label="Phone"
                                                 onBlur={handleBlur}
                                                 onChange={handleChange}
-                                                value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel.phone || ""}
+                                                value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel?.phone || ""}
                                                 name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.phone`}
                                                 error={!!touched.phone && !!errors.phone}
                                                 helperText={touched.phone && errors.phone}
@@ -699,7 +708,7 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                                 label="User ID"
                                                 onBlur={handleBlur}
                                                 onChange={handleChange}
-                                                value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel.user_id || ""}
+                                                value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel?.user_id || ""}
                                                 name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.user_id`}
                                                 error={!!touched.responders?.providers?.[PNPID]?.personnel?.user_id && !!errors.responders?.providers?.[PNPID]?.personnel?.user_id}
                                                 helperText={touched.responders?.providers?.[PNPID]?.personnel?.user_id && errors.responders?.providers?.[PNPID]?.personnel?.user_id}

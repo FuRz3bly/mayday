@@ -374,7 +374,7 @@ const Users = () => {
     }
   
     const confirmDisable = window.confirm(
-      `Are you sure you want to disable ${selectedUsers.length} users for ${days === 0 ? "Forever" : `${days} day(s)`}?`
+      `Are you sure you want to disable ${selectedUsers.length} users for ${days === 0 ? "Permanently" : `${days} day(s)`}?`
     );
     if (!confirmDisable) return;
   

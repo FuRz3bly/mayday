@@ -766,6 +766,7 @@ const Dashboard = () => {
             total: totalCounts.reports,
             weekly: weeklyCounts.reports,
             monthly: monthlyCounts.reports,
+            quarterly: quarterlyCounts.reports,
             ...calculateMetrics(periodCounts.reports, totalCounts.reports, reportsLimit),
         });
     
@@ -774,6 +775,7 @@ const Dashboard = () => {
             total: totalCounts.responses,
             weekly: weeklyCounts.responses,
             monthly: monthlyCounts.responses,
+            quarterly: quarterlyCounts.responses,
             ...calculateMetrics(todayCounts.responses, totalCounts.responses, responsesLimit),
         });
     
@@ -782,6 +784,7 @@ const Dashboard = () => {
             total: totalCounts.users,
             weekly: weeklyCounts.users,
             monthly: monthlyCounts.users,
+            quarterly: quarterlyCounts.users,
             ...calculateMetrics(todayCounts.users, totalCounts.users, usersLimit),
         });
     
@@ -790,6 +793,7 @@ const Dashboard = () => {
             total: totalCounts.stations,
             weekly: weeklyCounts.stations,
             monthly: monthlyCounts.stations,
+            quarterly: quarterlyCounts.stations,
             ...calculateMetrics(todayCounts.stations, totalCounts.stations, stationsLimit),
         });
 
@@ -799,6 +803,7 @@ const Dashboard = () => {
             total: totalCounts.routes,
             weekly: weeklyCounts.routes,
             monthly: monthlyCounts.routes,
+            quarterly: quarterlyCounts.routes,
             ...calculateMetrics(periodCounts.routes, totalCounts.routes, routesLimit),
         });
 
@@ -808,6 +813,7 @@ const Dashboard = () => {
             total: totalCounts.credits,
             weekly: weeklyCounts.credits,
             monthly: monthlyCounts.credits,
+            quarterly: quarterlyCounts.credits,
             ...calculateMetrics(periodCounts.credits, totalCounts.credits, creditsLimit),
         });
     }, [records, filters]);
@@ -1043,7 +1049,11 @@ const Dashboard = () => {
                     if (primaryFilter === "daily") return period === currentDate;
                     if (primaryFilter === "weekly") return displayMap[period] === currentWeek;
                     if (primaryFilter === "monthly") return displayMap[period] === currentMonth;
-                    if (primaryFilter === "quarterly") return displayMap[period] === currentQuarter;
+                    if (primaryFilter === "quarterly") {
+                        // Handle the format difference - extract just the quarter part for comparison
+                        const quarterPart = period.includes('-Q') ? period.split('-Q')[1] : period;
+                        return `Q${quarterPart}` === currentQuarter;
+                    }
                     return false;
                 });
 
@@ -1108,26 +1118,27 @@ const Dashboard = () => {
 
     const filteredResponses = responds
         .filter(response => {
-            const incidentDate = response?.date?.incident?.toMillis?.();
-            if (!incidentDate) return false;
-            const date = new Date(incidentDate);
+        const incidentDate = response?.date?.incident?.toMillis?.();
+        if (!incidentDate) return false;
+        const date = new Date(incidentDate);
 
-            if (filters.response.primary === 'daily') {
-                return date.toISOString().slice(0, 10) === filters.response.secondary;
-            } 
-            else if (filters.response.primary === 'weekly') {
-                const week = getISOWeekNumber(date);
-                return `Week ${week}` === filters.response.secondary;
-            } 
-            else if (filters.response.primary === 'monthly') {
-                const month = date.toLocaleString('default', { month: 'long' });
-                return month === filters.response.secondary;
-            } 
-            else if (filters.response.primary === 'quarterly') {
-                const quarter = Math.floor((date.getMonth() + 3) / 3);
-                return `Q${quarter}` === filters.response.secondary;
-            }
-            return true;
+        if (filters.response.primary === 'daily') {
+            return date.toISOString().slice(0, 10) === filters.response.secondary;
+        } 
+        else if (filters.response.primary === 'weekly') {
+            const week = getISOWeekNumber(date);
+            return `Week ${week}` === filters.response.secondary;
+        } 
+        else if (filters.response.primary === 'monthly') {
+            const month = date.toLocaleString('default', { month: 'long' });
+            return month === filters.response.secondary;
+        } 
+        else if (filters.response.primary === 'quarterly') {
+            // Correct quarterly calculation: Jan-Mar is Q1, Apr-Jun is Q2, etc.
+            const quarter = Math.ceil((date.getMonth() + 1) / 3);
+            return `Q${quarter}` === filters.response.secondary;
+        }
+        return true;
     })
     .sort((a, b) => b.date.incident.toMillis() - a.date.incident.toMillis());
 
@@ -1174,6 +1185,11 @@ const Dashboard = () => {
                 ];
                 adjustedSecondary = monthNames[monthNumber - 1] || filters.global.secondary;
             }
+            
+            // Add handling for quarterly format: convert "2025-Q1" to "Q1"
+            if (filters.global.primary === 'quarterly' && filters.global.secondary?.includes('-Q')) {
+                adjustedSecondary = `Q${filters.global.secondary.split('-Q')[1]}`;
+            }
     
             setFilters(prev => ({
                 ...prev,
@@ -1187,11 +1203,11 @@ const Dashboard = () => {
                 },
                 credits: {
                     primary: filters.global.primary,
-                    secondary: adjustedSecondary,
+                    secondary: filters.global.secondary, // Keep original format for credits
                 }
             }));
         }
-    }, [filters.global]);    
+    }, [filters.global]);
 
     const downloadChart = async () => {
         if (!chartRef.current) return;

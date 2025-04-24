@@ -3,7 +3,7 @@ import { useState, useEffect, useContext, useRef } from "react";
 
 // Material UI (MUI) Components 
 import {  
-  Box, IconButton, Button, Typography, MenuItem, Select,  
+  Box, IconButton, Button, Typography, MenuItem, Select, Snackbar, Alert,
   FormControl, InputLabel, Tooltip, Dialog, DialogContent, useTheme,
 } from "@mui/material"; 
 
@@ -45,7 +45,9 @@ import ExpandReports from "../../components/ExpandReports";
 const Reports = () => {
   const { 
       users, stations, reports, loadingReports, 
-      startReportsListener, stopReportsListener 
+      startReportsListener, stopReportsListener ,
+      startStationsListener, stopStationsListener,
+      startUsersListener, stopUsersListener,
     } = useContext(DataContext); // Reports and listeners
 
   const theme = useTheme(); // MUI Theme Hook
@@ -62,6 +64,11 @@ const Reports = () => {
   const [dispatchVisible, setDispatchVisible] = useState(false); // Dispatch Report Visibility
   const [expandVisible, setExpandVisible] = useState(false); // Expand Station Dialog Visibility
 
+  const [viewedReports, setViewedReports] = useState(new Set()); // Track viewed reports
+  const [newReportIds, setNewReportIds] = useState(new Set()); // Track new reports
+
+  const [snackbars, setSnackbars] = useState([]);
+
   const [viewableReports, setViewableReports] = useState([]);
 
   const [selectedStatus, setSelectedStatus] = useState("all"); // 0 - Pending / all - Every Status / active - Every Process of Responding
@@ -69,9 +76,36 @@ const Reports = () => {
 
   const [isTimeMinimal, setTimeMinimal] = useState(false); // If the Table has Real-time updates
 
+  // Load previously viewed reports from localStorage on component mount
+  useEffect(() => {
+    const storedReports = localStorage.getItem('viewedReports');
+    if (storedReports) {
+      setViewedReports(new Set(JSON.parse(storedReports)));
+    }
+  }, []);
+
   // Format reports when "reports" changes
   useEffect(() => {
     if (!loadingReports) {
+      // Get current IDs for comparison
+      const currentIds = new Set(reports.map(report => report.id));
+      const previousIds = new Set(formattedReports.map(report => report.id));
+      
+      // Special handling for first mount
+      const isFirstMount = formattedReports.length === 0 && reports.length > 0;
+      
+      // Find new reports (in current but not in previous or viewed)
+      const newIds = new Set();
+      
+      // Only look for new reports if this isn't the first mount
+      if (!isFirstMount) {
+        currentIds.forEach(id => {
+          if (!previousIds.has(id) && !viewedReports.has(id)) {
+            newIds.add(id);
+          }
+        });
+      }
+
       const formatted = reports.map((report) => {
         const incidentDateTime = report.date?.incident ? report.date.incident.toDate() : null;
         const receivedDateTime = report.date?.received ? report.date.received.toDate() : null;
@@ -197,8 +231,31 @@ const Reports = () => {
       }).sort((a, b) => b.timestamp - a.timestamp);
 
       setFormattedReports(formatted);
+
+      if (!isFirstMount && newIds.size > 0) {
+        setNewReportIds(newIds);
+        
+        // Show notification for new reports using the new addSnackbar function
+        const reportTypes = [...newIds].map(id => {
+          const report = reports.find(r => r.id === id);
+          return report ? getTypeLabel(report.type) : "Unknown";
+        });
+        
+        const message = `New ${reportTypes.join(", ")} report${newIds.size > 1 ? 's' : ''} received!`;
+        
+        // Use the new addSnackbar function with appropriate severity
+        addSnackbar(message, "info");
+      }
+      
+      // If it's first mount, add all current reports to viewedReports to avoid highlighting
+      if (isFirstMount) {
+        const initialViewedSet = new Set([...viewedReports, ...currentIds]);
+        setViewedReports(initialViewedSet);
+        localStorage.setItem('viewedReports', JSON.stringify([...initialViewedSet]));
+      }
     }
-  }, [reports, loadingReports]);
+  // eslint-disable-next-line
+  }, [reports, loadingReports, formattedReports.length]);
 
   const columns = [
     { field: "id", headerName: "ID", flex: 1 },
@@ -249,8 +306,28 @@ const Reports = () => {
     if (isListening) {
       stopReportsListener();
     } else {
+      // Start all listeners
       startReportsListener();
+      
+      // Start stations listener and set up auto-stop
+      startStationsListener();
+      const stationsCheck = setInterval(() => {
+        if (stations && stations.length > 0) {
+          stopStationsListener();
+          clearInterval(stationsCheck);
+        }
+      }, 1000); // Check every second
+      
+      // Start users listener and set up auto-stop
+      startUsersListener();
+      const usersCheck = setInterval(() => {
+        if (users && users.length > 0) {
+          stopUsersListener();
+          clearInterval(usersCheck);
+        }
+      }, 1000); // Check every second
     }
+    
     setIsListening(!isListening);
   };
 
@@ -266,13 +343,13 @@ const Reports = () => {
   // Delete Function
   const handleDelete = async () => {
     if (selectedReports.length === 0) {
-      alert("Please select reports to delete.");
+      addSnackbar("Please select reports to delete.", "warning");
       return;
     }
-  
+
     const confirmDelete = window.confirm(`Are you sure you want to delete ${selectedReports.length} report(s)?`);
     if (!confirmDelete) return;
-  
+
     try {
       const today = new Date();
       const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -280,11 +357,11 @@ const Reports = () => {
       // Reference to the daily report counter document
       const counterRef = doc(db, "metadata", "daily", "records", formattedDate);
       const counterSnap = await getDoc(counterRef);
-  
+
       // Retrieve and decrement report count
       const currentCount = counterSnap.exists() ? counterSnap.data().reports || 0 : 0;
       const newCount = Math.max(0, currentCount - selectedReports.length); // Prevent negative count
-  
+
       // Delete reports
       await Promise.all(
         selectedReports.map(async (reportID) => {
@@ -292,25 +369,33 @@ const Reports = () => {
           await deleteDoc(reportRef);
         })
       );
-  
+
       // Update Firestore with the new count
       await setDoc(counterRef, { reports: newCount }, { merge: true });
-  
-      alert("Selected report(s) deleted successfully.");
+
+      addSnackbar(`Successfully deleted ${selectedReports.length} report(s).`, "success");
       setSelectedReports([]); // Clear selection after deletion
     } catch (error) {
       console.error("Error deleting report(s):", error);
-      alert("Failed to delete report(s).");
+      addSnackbar("Failed to delete report(s).", "error");
     }
   };
 
   // Edit Function
   const handleEdit = () => {
-    if (selectedReports.length === 1) {
-      const selectedReport = reports.find((report) => report.id === selectedReports[0]);
-      setEditingReport(selectedReport);
-      setEditVisible(true);
+    if (selectedReports.length === 0) {
+      addSnackbar("Please select a report to edit.", "warning");
+      return;
     }
+    
+    if (selectedReports.length > 1) {
+      addSnackbar("Please select only one report to edit.", "warning");
+      return;
+    }
+    
+    const selectedReport = reports.find((report) => report.id === selectedReports[0]);
+    setEditingReport(selectedReport);
+    setEditVisible(true);
   };
 
   // Edit Expand Function
@@ -711,6 +796,66 @@ const Reports = () => {
     prevSelectedStatus.current = selectedStatus;
   }, [selectedStatus, isTimeMinimal]);
 
+  // Handler for when a row is clicked
+  const handleRowClick = (params) => {
+    const reportId = params.id;
+    if (newReportIds.has(reportId)) {
+      // Mark as viewed
+      const updatedViewedReports = new Set(viewedReports);
+      updatedViewedReports.add(reportId);
+      setViewedReports(updatedViewedReports);
+      
+      // Update localStorage
+      localStorage.setItem('viewedReports', JSON.stringify([...updatedViewedReports]));
+      
+      // Remove from new reports
+      const updatedNewReports = new Set(newReportIds);
+      updatedNewReports.delete(reportId);
+      setNewReportIds(updatedNewReports);
+    }
+  };
+
+  // Handler for when rows are selected via checkboxes
+  const handleSelectionModelChange = (ids) => {
+    setSelectedReports(ids);
+    
+    // Mark selected reports as viewed
+    const updatedViewedReports = new Set(viewedReports);
+    const updatedNewReports = new Set(newReportIds);
+    
+    // Process each selected ID
+    ids.forEach(id => {
+      if (newReportIds.has(id)) {
+        updatedViewedReports.add(id);
+        updatedNewReports.delete(id);
+      }
+    });
+    
+    // Update state only if changes were made
+    if ([...updatedNewReports].length !== [...newReportIds].length) {
+      setViewedReports(updatedViewedReports);
+      localStorage.setItem('viewedReports', JSON.stringify([...updatedViewedReports]));
+      setNewReportIds(updatedNewReports);
+    }
+  };
+
+  // Customize row styling to highlight new reports
+  const getRowClassName = (params) => {
+    //console.log(`Row ${params.id}, isNew: ${newReportIds.has(params.id)}`);
+    return newReportIds.has(params.id) ? 'new-report-row' : '';
+  };
+
+  // Add a new snackbar message
+  const addSnackbar = (message, severity = "info") => {
+    const id = new Date().getTime(); // Unique ID for each snackbar
+    setSnackbars(prev => [...prev, { id, message, severity }]);
+  };
+
+  // Remove a snackbar by ID
+  const removeSnackbar = (id) => {
+    setSnackbars(prev => prev.filter(snackbar => snackbar.id !== id));
+  };
+
   return (
     <Box m="20px">
       {/* Add Report Modal */}
@@ -771,22 +916,59 @@ const Reports = () => {
           },
           "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
             color: `${colors.grey[100]} !important`,
-          } // Styling for Theme
+          },
+          '& .new-report-row': {
+            borderLeft: `4px solid ${colors.greenAccent[500]} !important`,
+            backgroundColor: `${colors.greenAccent[500]}12 !important`,
+            '&:hover': {
+              borderLeft: `4px solid ${colors.greenAccent[400]} !important`,
+              backgroundColor: `${colors.greenAccent[400]}12 !important`,
+            },
+          }, // Styling for Theme
         }}
       >
         <DataGrid 
           checkboxSelection
           rows={filteredRows}
           columns={columns}
+          getRowClassName={getRowClassName}
           slots={{
             toolbar: ReportToolbar,
             footer: ReportFootTools
           }}
           columnVisibilityModel={columnVisibilityModel}
-          onRowSelectionModelChange={(ids) => setSelectedReports(ids)}
+          onRowSelectionModelChange={handleSelectionModelChange}
           onColumnVisibilityModelChange={setColumnVisibilityModel}
+          onRowClick={handleRowClick}
         />
       </Box>
+
+      {snackbars.map((snackbar, index) => (
+        <Snackbar
+          key={snackbar.id}
+          open={true}
+          autoHideDuration={10000}
+          onClose={() => removeSnackbar(snackbar.id)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          style={{ top: 70 + (index * 70) }} // Stack each snackbar below the previous one
+        >
+          <Alert 
+            onClose={() => removeSnackbar(snackbar.id)} 
+            severity={snackbar.severity} 
+            sx={{ 
+              width: '100%',
+              backgroundColor: 
+                snackbar.severity === "error" ? colors.redAccent[700] :
+                snackbar.severity === "warning" ? colors.redAccent[400] :
+                snackbar.severity === "success" ? '#3b6e44' :
+                colors.blueAccent[700],
+              color: colors.grey[100]
+            }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      ))}
     </Box>
   );
 };
