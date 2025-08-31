@@ -1978,7 +1978,7 @@ const Dashboard = () => {
                             {/* Listener Toggle Buttons */}
                             <Box display="flex" gap={1}>
                                 <Tooltip 
-                                    title={isListening ? "Stop Listening" : "Start Listening"} 
+                                    title={isListening ? "Disconnect from Database" : "Connect to Database"} 
                                     placement="bottom" 
                                     sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
                                 >

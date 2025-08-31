@@ -30,9 +30,10 @@ import DeleteSweepOutlinedIcon from '@mui/icons-material/DeleteSweepOutlined';
 import BorderColorOutlinedIcon from '@mui/icons-material/BorderColorOutlined';
 import IosShareOutlinedIcon from '@mui/icons-material/IosShareOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 
 // Firebase
-import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";  
+import { doc, setDoc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";  
 import { db } from "../../config/firebaseConfig";
 
 // Local Components
@@ -41,6 +42,7 @@ import AddReportForm from "../../components/AddReport";
 import EditReportForm from "../../components/EditReport";
 import DispatchReportForm from "../../components/DispatchReport";
 import ExpandReports from "../../components/ExpandReports";
+import AlertSound from "../../assets/sounds/alarm.mp3"
 
 const Reports = () => {
   const { 
@@ -51,6 +53,7 @@ const Reports = () => {
     } = useContext(DataContext); // Reports and listeners
 
   const theme = useTheme(); // MUI Theme Hook
+  const themeMode = theme?.palette?.mode ? theme.palette.mode : 'dark'
   const colors = tokens(theme.palette.mode); // Theme Colors
 
   const [isListening, setIsListening] = useState(false); // If the Table has Real-time updates
@@ -66,8 +69,11 @@ const Reports = () => {
 
   const [viewedReports, setViewedReports] = useState(new Set()); // Track viewed reports
   const [newReportIds, setNewReportIds] = useState(new Set()); // Track new reports
+  const [falseReportIds, setFalseReportIds] = useState(new Set()); // Track false reports
 
   const [snackbars, setSnackbars] = useState([]);
+  const [playingAlarm, setPlayingAlarm] = useState(false);
+  const alertSoundRef = useRef(new Audio(AlertSound));
 
   const [viewableReports, setViewableReports] = useState([]);
 
@@ -84,6 +90,31 @@ const Reports = () => {
     }
   }, []);
 
+  // Mark reports as viewed function
+  const markReportsAsViewed = (reportIds) => {
+    if (!reportIds || reportIds.size === 0) return;
+    
+    // Add the viewed report IDs to the viewedReports set
+    const updatedViewedSet = new Set([...viewedReports]);
+    const updatedNewReportIds = new Set([...newReportIds]);
+    
+    // Process each ID to be marked as viewed
+    reportIds.forEach(id => {
+      updatedViewedSet.add(id);
+      updatedNewReportIds.delete(id);
+    });
+    
+    // Update state
+    setViewedReports(updatedViewedSet);
+    localStorage.setItem('viewedReports', JSON.stringify([...updatedViewedSet]));
+    setNewReportIds(updatedNewReportIds);
+    
+    // Stop the alarm if no more unviewed reports
+    if (updatedNewReportIds.size === 0) {
+      setPlayingAlarm(false);
+    }
+  };
+
   // Format reports when "reports" changes
   useEffect(() => {
     if (!loadingReports) {
@@ -96,6 +127,17 @@ const Reports = () => {
       
       // Find new reports (in current but not in previous or viewed)
       const newIds = new Set();
+
+      // Track false reports
+      const falseIds = new Set();
+      reports.forEach(report => {
+        if (report.flags?.report === false) {
+          falseIds.add(report.id);
+        }
+      });
+      
+      // Update false report IDs state
+      setFalseReportIds(falseIds);
       
       // Only look for new reports if this isn't the first mount
       if (!isFirstMount) {
@@ -233,18 +275,24 @@ const Reports = () => {
       setFormattedReports(formatted);
 
       if (!isFirstMount && newIds.size > 0) {
-        setNewReportIds(newIds);
+        const updatedNewReportIds = new Set([...newReportIds, ...newIds]);
+        setNewReportIds(updatedNewReportIds);
+
+        if (!playingAlarm && updatedNewReportIds.size > 0) {
+          setPlayingAlarm(true);
+        }
         
-        // Show notification for new reports using the new addSnackbar function
-        const reportTypes = [...newIds].map(id => {
+        // Show individual notification for EACH new report
+        [...newIds].forEach(id => {
           const report = reports.find(r => r.id === id);
-          return report ? getTypeLabel(report.type) : "Unknown";
+          if (report) {
+            const reportType = getTypeLabel(report.type);
+            const message = `New ${reportType} report received!`;
+            
+            // Create separate notification for each report
+            addSnackbar(message, "info");
+          }
         });
-        
-        const message = `New ${reportTypes.join(", ")} report${newIds.size > 1 ? 's' : ''} received!`;
-        
-        // Use the new addSnackbar function with appropriate severity
-        addSnackbar(message, "info");
       }
       
       // If it's first mount, add all current reports to viewedReports to avoid highlighting
@@ -255,7 +303,41 @@ const Reports = () => {
       }
     }
   // eslint-disable-next-line
-  }, [reports, loadingReports, formattedReports.length]);
+  }, [reports, loadingReports, formattedReports.length, newReportIds, falseReportIds, playingAlarm]);
+
+  useEffect(() => {
+    const audioElement = alertSoundRef.current;
+    
+    // Configure audio to loop
+    audioElement.loop = true;
+    
+    // Set up event listeners
+    const handleEnded = () => {
+      if (playingAlarm) {
+        audioElement.play().catch(err => {
+          console.warn('Error playing looped notification sound:', err);
+        });
+      }
+    };
+    
+    audioElement.addEventListener('ended', handleEnded);
+    
+    // Start or stop the alarm based on whether there are unviewed reports
+    if (playingAlarm) {
+      audioElement.play().catch(err => {
+        console.warn('Error starting notification sound:', err);
+      });
+    } else {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+    }
+    
+    // Cleanup function
+    return () => {
+      audioElement.removeEventListener('ended', handleEnded);
+      audioElement.pause();
+    };
+  }, [playingAlarm]);
 
   const columns = [
     { field: "id", headerName: "ID", flex: 1 },
@@ -409,6 +491,78 @@ const Reports = () => {
     setEditVisible(false);
   };
 
+  // Flag Report as False
+  const handleFlag = async () => {
+    const selectedReportId = selectedReports[0];
+    const selectedReport = reports.find((report) => report.id === selectedReportId);
+    
+    if (!selectedReport) {
+      console.error("No report selected");
+      return;
+    }
+
+    // Check if report is already flagged as false
+    if (falseReportIds.has(selectedReportId)) {
+      alert("⚠️ This report is already flagged as false!");
+      return;
+    }
+
+    // Confirmation dialog before flagging
+    const confirmFlag = window.confirm(
+      `⚠️ WARNING: You are about to flag this report as FALSE.\n\n` +
+      `Report ID: ${selectedReport.id}\n` +
+      `Reporter: ${selectedReport.reporter.name.first_name} ${selectedReport.reporter.name.last_name}\n` +
+      `Type: ${getTypeLabel(selectedReport.type)}\n\n` +
+      `This action will:\n` +
+      `• Mark the report as false\n` +
+      `• Add a violation to the reporter's account\n` +
+      `• Cannot be easily undone\n\n` +
+      `Are you sure you want to proceed?`
+    );
+
+    if (!confirmFlag) {
+      return; // User cancelled
+    }
+
+    try {
+        // Update the report's flag status
+        const reportRef = doc(db, "reports", selectedReport.id);
+        await updateDoc(reportRef, {
+            "flags.report": false
+        });
+
+        // Get the user document to check current violation count
+        const userRef = doc(db, "users", selectedReport.reporter.user_id);
+        const userDoc = await getDoc(userRef);
+        
+        let updatedViolationCount = 1; // Default to 1 if no previous violations
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const currentViolations = userData.account?.violation || 0;
+          updatedViolationCount = currentViolations + 1;
+        }
+
+        // Update the user's violation count
+        await updateDoc(userRef, {
+          "account.violation": updatedViolationCount
+        });
+
+        // Update local state immediately for UI feedback
+        setFalseReportIds(prev => new Set([...prev, selectedReportId]));
+
+        console.log("Report flagged successfully and user violation count updated");
+        alert("✅ Report flagged as false and user violation recorded!");
+        
+        // Clear selection after successful flagging
+        setSelectedReports([]);
+        
+      } catch (error) {
+        console.error("Error updating report flag or user violation:", error);
+        alert("❌ Error processing flag report. Please try again.");
+      }
+  };
+
   // Dispatch Function
   const handleDispatch = () => {
     if (selectedReports.length === 1) {
@@ -438,11 +592,11 @@ const Reports = () => {
             <Tooltip 
               title={isListening ? "Disconnect from Database" : "Connect to Database"}
               placement="bottom" 
-              sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
+              sx={{ color: "white" }} // Tooltip styling
             >
               <IconButton 
                 onClick={handleToggleListener} 
-                color={isListening ? "secondary" : "default"}
+                color={isListening ? (themeMode === 'dark' ? 'secondary' : 'tertiary') : "default"}
                 sx={{ fontSize: "2rem", padding: "5px" }}
               >
                 {isListening ? (
@@ -472,7 +626,7 @@ const Reports = () => {
           {selectedStatus === "active" && (
             <Tooltip
               title={!isTimeMinimal ? "Show Time Records" : "Hide Time Records"} 
-              placement="bottom" 
+              placement="top" 
               sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
             >
               <IconButton 
@@ -492,7 +646,7 @@ const Reports = () => {
           {/* Report Status Dropdown */}
           <Tooltip
             title={"Filter Reports By Status"} 
-            placement="bottom" 
+            placement="top" 
             sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
           >
             <FormControl sx={{ minWidth: 200, marginRight: 3 }}>
@@ -519,7 +673,7 @@ const Reports = () => {
           {/* Report Service Dropdown */}
           <Tooltip 
             title={"Categorize Reports By Service"} 
-            placement="bottom" 
+            placement="top" 
             sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
           >
           <FormControl sx={{ minWidth: 200 }}>
@@ -574,14 +728,14 @@ const Reports = () => {
           <span>
             <Button
               sx={{
-                backgroundColor: colors.greenAccent[400],
+                backgroundColor: themeMode === 'dark' ? colors.greenAccent[500] : "#676ff0",
                 color: colors.grey[900],
                 fontSize: "12px",
                 fontWeight: "bold",
                 padding: "5px 10px",
                 marginX: 1,
                 "&:hover": {
-                  backgroundColor: colors.greenAccent[500],
+                  backgroundColor: themeMode === 'dark' ? colors.greenAccent[400] : "#868dfb",
                 },
               }}
               onClick={handleAdd}
@@ -594,7 +748,7 @@ const Reports = () => {
 
         {/* Expand Reports */}
         <Tooltip
-          title={"Expand Station(s)"}
+          title={"Expand Report(s)"}
           placement="top"
           sx={{ bgcolor: "gray.700", color: "white" }}
         >
@@ -604,7 +758,7 @@ const Reports = () => {
                 backgroundColor:
                   selectedReports.length < 1
                     ? colors.blueAccent[900]
-                    : colors.greenAccent[400],
+                    : (themeMode === 'dark' ? colors.greenAccent[500] : "#676ff0"),
                 color: colors.grey[900],
                 fontSize: "12px",
                 fontWeight: "bold",
@@ -614,7 +768,7 @@ const Reports = () => {
                   backgroundColor:
                     selectedReports.length < 1
                       ? colors.blueAccent[800]
-                      : colors.greenAccent[500],
+                      : (themeMode === 'dark' ? colors.greenAccent[400] : "#868dfb"),
                 },
               }}
               onClick={handleExpand}
@@ -622,6 +776,49 @@ const Reports = () => {
             >
               <OpenInNewIcon sx={{ mr: "10px" }} />
               Expand
+            </Button>
+          </span>
+        </Tooltip>
+
+        {/* Flag Reports */}
+        <Tooltip
+          title={
+            selectedReports.length !== 1 
+              ? "Select exactly one report to flag"
+              : falseReportIds.has(selectedReports[0])
+                ? "This report is already flagged as false"
+                : "Flag False Report"
+          }
+          placement="top"
+          sx={{ color: "white" }}
+        >
+          <span>
+            <Button
+              sx={{
+                backgroundColor:
+                  selectedReports.length < 1 || falseReportIds.has(selectedReports[0])
+                    ? colors.blueAccent[900]
+                    : (themeMode === 'dark' ? colors.greenAccent[500] : "#676ff0"),
+                color: colors.grey[900],
+                fontSize: "12px",
+                fontWeight: "bold",
+                padding: "5px 10px",
+                marginX: 1,
+                "&:hover": {
+                  backgroundColor:
+                    selectedReports.length < 1 || falseReportIds.has(selectedReports[0])
+                      ? colors.blueAccent[800]
+                      : (themeMode === 'dark' ? colors.greenAccent[400] : "#868dfb"),
+                },
+              }}
+              onClick={handleFlag}
+              disabled={
+                selectedReports.length !== 1 || 
+                falseReportIds.has(selectedReports[0])
+              }
+            >
+              <OutlinedFlagIcon sx={{ mr: "10px" }} />
+              Flag
             </Button>
           </span>
         </Tooltip>
@@ -644,7 +841,7 @@ const Reports = () => {
                 backgroundColor:
                   selectedReports.length === 1 &&
                   reports.find(report => report.id === selectedReports[0])?.status === 0
-                    ? colors.greenAccent[400]
+                    ? (themeMode === 'dark' ? colors.greenAccent[500] : "#676ff0")
                     : colors.blueAccent[900],
                 color: colors.grey[900],
                 fontSize: "12px",
@@ -655,7 +852,7 @@ const Reports = () => {
                   backgroundColor:
                     selectedReports.length === 1 &&
                     reports.find(report => report.id === selectedReports[0])?.status === 0
-                      ? colors.greenAccent[500]
+                      ? (themeMode === 'dark' ? colors.greenAccent[400] : "#868dfb")
                       : colors.blueAccent[800],
                 },
               }}
@@ -686,7 +883,7 @@ const Reports = () => {
               sx={{
                 backgroundColor:
                   selectedReports.length === 1
-                    ? colors.greenAccent[400]
+                    ? (themeMode === 'dark' ? colors.greenAccent[500] : "#676ff0")
                     : colors.blueAccent[900],
                 color: colors.grey[900],
                 fontSize: "12px",
@@ -696,7 +893,7 @@ const Reports = () => {
                 "&:hover": {
                   backgroundColor:
                     selectedReports.length === 1
-                      ? colors.greenAccent[500]
+                      ? (themeMode === 'dark' ? colors.greenAccent[400] : "#868dfb") 
                       : colors.blueAccent[800],
                 },
               }}
@@ -718,15 +915,19 @@ const Reports = () => {
           <span>
             <Button
               sx={{
-                backgroundColor: selectedReports.length > 0 ? colors.greenAccent[400] : colors.blueAccent[900],
-                color: colors.grey[900],
+                backgroundColor: selectedReports.length < 1 
+                  ? colors.blueAccent[900] 
+                  : (themeMode === 'dark' ? colors.greenAccent[500] : "#676ff0"),
+                  color: colors.grey[900],
                 fontSize: "12px",
                 fontWeight: "bold",
                 padding: "5px 10px",
                 marginX: 1,
                 "&:hover": {
-                  backgroundColor: selectedReports.length > 0 ? colors.greenAccent[500] : colors.blueAccent[800],
-                },
+                  backgroundColor: selectedReports.length < 1 
+                    ? colors.blueAccent[800]
+                    : (themeMode === 'dark' ? colors.greenAccent[400] : "#868dfb"),
+                }
               }}
               onClick={handleDelete}
               disabled={selectedReports.length === 0}
@@ -800,18 +1001,8 @@ const Reports = () => {
   const handleRowClick = (params) => {
     const reportId = params.id;
     if (newReportIds.has(reportId)) {
-      // Mark as viewed
-      const updatedViewedReports = new Set(viewedReports);
-      updatedViewedReports.add(reportId);
-      setViewedReports(updatedViewedReports);
-      
-      // Update localStorage
-      localStorage.setItem('viewedReports', JSON.stringify([...updatedViewedReports]));
-      
-      // Remove from new reports
-      const updatedNewReports = new Set(newReportIds);
-      updatedNewReports.delete(reportId);
-      setNewReportIds(updatedNewReports);
+      // Use the common function to mark as viewed
+      markReportsAsViewed(new Set([reportId]));
     }
   };
 
@@ -819,30 +1010,26 @@ const Reports = () => {
   const handleSelectionModelChange = (ids) => {
     setSelectedReports(ids);
     
-    // Mark selected reports as viewed
-    const updatedViewedReports = new Set(viewedReports);
-    const updatedNewReports = new Set(newReportIds);
+    // Identify which selected reports are new and need to be marked as viewed
+    const newSelectedReports = ids.filter(id => newReportIds.has(id));
     
-    // Process each selected ID
-    ids.forEach(id => {
-      if (newReportIds.has(id)) {
-        updatedViewedReports.add(id);
-        updatedNewReports.delete(id);
-      }
-    });
-    
-    // Update state only if changes were made
-    if ([...updatedNewReports].length !== [...newReportIds].length) {
-      setViewedReports(updatedViewedReports);
-      localStorage.setItem('viewedReports', JSON.stringify([...updatedViewedReports]));
-      setNewReportIds(updatedNewReports);
+    // Mark selected reports as viewed if any are new
+    if (newSelectedReports.length > 0) {
+      markReportsAsViewed(new Set(newSelectedReports));
     }
   };
 
   // Customize row styling to highlight new reports
   const getRowClassName = (params) => {
     //console.log(`Row ${params.id}, isNew: ${newReportIds.has(params.id)}`);
-    return newReportIds.has(params.id) ? 'new-report-row' : '';
+    //return newReportIds.has(params.id) ? 'new-report-row' : ''; - insurance
+    if (falseReportIds.has(params.id)) {
+      return 'false-report-row';
+    }
+    if (newReportIds.has(params.id)) {
+      return 'new-report-row';
+    }
+    return '';
   };
 
   // Add a new snackbar message
@@ -898,7 +1085,7 @@ const Reports = () => {
             borderBottom: "none",
           },
           "& .name-column--cell": {
-            color: colors.greenAccent[300],
+            color: themeMode === 'dark' ? colors.greenAccent[300] : colors.blueAccent[400],
           },
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: colors.blueAccent[700],
@@ -912,19 +1099,45 @@ const Reports = () => {
             backgroundColor: colors.blueAccent[700],
           },
           "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
+            color: `${themeMode === 'dark' ? colors.greenAccent[200] : colors.blueAccent[400]} !important`,
           },
           "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
             color: `${colors.grey[100]} !important`,
           },
           '& .new-report-row': {
-            borderLeft: `4px solid ${colors.greenAccent[500]} !important`,
-            backgroundColor: `${colors.greenAccent[500]}12 !important`,
+            borderLeft: `4px solid ${themeMode === 'dark' ? colors.greenAccent[500] : colors.blueAccent[400]} !important`,
+            backgroundColor: `${themeMode === 'dark' ? colors.greenAccent[500] : colors.blueAccent[400]}12 !important`,
             '&:hover': {
-              borderLeft: `4px solid ${colors.greenAccent[400]} !important`,
-              backgroundColor: `${colors.greenAccent[400]}12 !important`,
+              borderLeft: `4px solid ${themeMode === 'dark' ? colors.greenAccent[400] : colors.blueAccent[400]} !important`,
+              backgroundColor: `${themeMode === 'dark' ? colors.greenAccent[400] : colors.blueAccent[400]}12 !important`,
             },
-          }, // Styling for Theme
+          },
+          '& .false-report-row': {
+            borderLeft: `4px solid ${themeMode === 'dark' ? colors.redAccent[500] : colors.redAccent[400]} !important`,
+            backgroundColor: `${themeMode === 'dark' ? colors.redAccent[500] : colors.redAccent[400]}12 !important`,
+            opacity: 0.7,
+            '&:hover': {
+              borderLeft: `4px solid ${themeMode === 'dark' ? colors.redAccent[400] : colors.redAccent[400]} !important`,
+              backgroundColor: `${themeMode === 'dark' ? colors.redAccent[400] : colors.redAccent[400]}15 !important`,
+              opacity: 0.8,
+            },
+          },
+          "& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within": {
+            outline: "none !important",
+          },
+          "& .MuiDataGrid-cell.MuiDataGrid-cell--editing:focus-within": {
+            outline: "none !important",
+            border: `2px solid ${themeMode === 'dark' ? colors.greenAccent[400] : colors.blueAccent[400]} !important`,
+            borderRadius: "4px !important",
+          },
+          "& .MuiDataGrid-cell.Mui-selected": {
+            backgroundColor: `${themeMode === 'dark' ? colors.greenAccent[500] : colors.blueAccent[100]}30 !important`,
+            borderLeft: `2px solid ${themeMode === 'dark' ? colors.greenAccent[400] : colors.blueAccent[400]} !important`,
+            color: `${themeMode === 'dark' ? colors.grey[100] : colors.grey[900]} !important`,
+          },
+          "& .MuiDataGrid-cell.Mui-selected:hover": {
+            backgroundColor: `${themeMode === 'dark' ? colors.greenAccent[400] : colors.blueAccent[200]}40 !important`,
+          },
         }}
       >
         <DataGrid 
@@ -940,6 +1153,13 @@ const Reports = () => {
           onRowSelectionModelChange={handleSelectionModelChange}
           onColumnVisibilityModelChange={setColumnVisibilityModel}
           onRowClick={handleRowClick}
+          pagination
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 25, page: 0 },
+            },
+          }}
+          pageSizeOptions={[10, 25, 50, 100]}
         />
       </Box>
 

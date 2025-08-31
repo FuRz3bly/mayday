@@ -14,6 +14,8 @@ import DoNotDisturbAltIcon from '@mui/icons-material/DoNotDisturbAlt';
 import BeenhereIcon from '@mui/icons-material/Beenhere';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import FlagIcon from '@mui/icons-material/Flag';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 // Leaflet Map Components
 import { MapContainer, TileLayer, Popup, Marker as OSMMarker, Polygon, useMap, useMapEvents } from "react-leaflet";
@@ -84,6 +86,7 @@ const Map = ({ isCollapsed }) => {
   const [editReportVisible, setEditReportVisible] = useState(false); // Edit Report Dialog Visibility
   const [expandReportVisible, setExpandReportVisible] = useState(false); // Expand Report Dialog Visibility
   const [reportEvidenceVisible, setReportEvidenceVisible] = useState(false); // Report Evidence Visibility
+  const [reportSuspiciousVisible, setReportSuspiciousVisible] = useState(false); // Show Only Reports With Pictures Visibility
   const [isImageLoading, setIsImageLoading] = useState(true);
 
   //const geoapifyApiKey = process.env.REACT_APP_GEOAPIFY_API_KEY; // API key for Geoapify services  
@@ -123,6 +126,13 @@ const Map = ({ isCollapsed }) => {
   useEffect(() => {
     setIndangBoundary([boundaryData.coordinates]);
   }, []);
+
+  // Fixing the Suspicious Report => Stations Markers Bug
+  useEffect(() => {
+    if (selectedCategory === "stations" || selectedCategory === "all") {
+      setReportSuspiciousVisible(false);
+    }
+  }, [selectedCategory]);
 
   // Toggle Real-time Listener
   const handleToggleListener = () => {
@@ -426,6 +436,10 @@ const Map = ({ isCollapsed }) => {
     return null;
   };
 
+  const toggleViewSuspicious = () => {
+    setReportSuspiciousVisible(!reportSuspiciousVisible);
+  };
+
   return (
     <Box m="20px">
       {/* Add Station Modal */}
@@ -524,8 +538,10 @@ const Map = ({ isCollapsed }) => {
       </Dialog>
 
       <Header title="MAP" subtitle="Manage Indang's Map, Stations and Reports" />
+
+      {/* Database Connector Radio Button */}
       <Box display="flex" width="100%">
-        {/* Listener Toggle Button - 15% */}
+        {/* Listener Toggle Button */}
         <Box display="flex" alignItems="center" flex="1 1 15%">
           <Tooltip
             title={isListening ? "Disconnect from Database" : "Connect to Database"}
@@ -750,7 +766,16 @@ const Map = ({ isCollapsed }) => {
           })}
 
           {/* Report Markers */}
-          {(selectedCategory === "reports" || selectedCategory === "all") && mapType === "normal" && reports.map((report) => {
+          {(selectedCategory === "reports" || selectedCategory === "all") && mapType === "normal" && reports
+            .filter(report => {
+              // If only Show only Suspicious Activity is true, only show reports that is Suspicious and has evidence
+              if (reportSuspiciousVisible) {
+                return report.type === 8 && report.evidence;
+              }
+              // Otherwise show all reports
+              return true;
+            })
+            .map((report) => {
             // Check if this report is currently selected
             const isSelected = selectedReports.some(r => r.id === report.id);
             
@@ -1160,6 +1185,33 @@ const Map = ({ isCollapsed }) => {
                 >
                   <FlagIcon sx={{ mr: "10px" }} />
                   Add
+                </Button>
+              </span>
+            </Tooltip>
+            {/* Show Only Reports with Photo */}
+            <Tooltip
+              title={reportSuspiciousVisible ? "Show all Reports" : "Show only Reports with Photo"}
+              placement="top"
+              sx={{ bgcolor: "gray.700", color: "white" }} // Tooltip styling
+            >
+              <span>
+                <Button
+                  sx={{
+                    backgroundColor: colors.greenAccent[400],
+                    color: colors.grey[900],
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    padding: "5px 10px",
+                    marginX: 1,
+                    "&:hover": {
+                      backgroundColor: colors.greenAccent[500],
+                    },
+                  }}
+                  onClick={toggleViewSuspicious}
+                  //disabled={isUpdating}
+                >
+                  {reportSuspiciousVisible ? <VisibilityOffIcon sx={{ mr: "10px" }} /> : <VisibilityIcon sx={{ mr: "10px" }}/>}
+                  Suspicious Activity
                 </Button>
               </span>
             </Tooltip>

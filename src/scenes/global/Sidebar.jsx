@@ -1,7 +1,7 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
 import { DataContext } from "../../data";
 import { tokens } from "../../theme";
@@ -42,6 +42,33 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const colors = tokens(theme.palette.mode);
   const { authUser } = useContext(DataContext);
   const [selected, setSelected] = useState("Dashboard");
+  const location = useLocation();
+
+  // Map routes to menu item titles
+  const routeToTitle = {
+    "/": "Dashboard",
+    "/users": "Manage Users",
+    "/reports": "Manage Reports",
+    "/map": "Manage Map",
+    "/faq": "FAQ Page",
+    //"/stations": "Manage Stations",
+    //"/form": "Profile Form",
+    //"/calendar": "Calendar",
+    //"/bar": "Bar Chart",
+    //"/pie": "Pie Chart",
+    //"/line": "Line Chart",
+    //"/geography": "Geography Chart",
+  };
+
+  // Set the selected menu item based on the current path when component mounts or path changes
+  useEffect(() => {
+    const pathName = location.pathname;
+    const title = routeToTitle[pathName];
+    if (title) {
+      setSelected(title);
+    }
+  // eslint-disable-next-line
+  }, [location.pathname]);
 
   return (
     <Box
