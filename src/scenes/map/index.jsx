@@ -919,6 +919,7 @@ const Map = ({ isCollapsed }) => {
               : ""
           )}
         </Typography> */}
+        
         <Typography color={colors.grey[100]} fontSize="14px" ml={2}>
           {selectedStations.length > 0 
             ? `${selectedStations.length} Station${selectedStations.length !== 1 ? 's' : ''}` 
