@@ -80,7 +80,7 @@ const Login = () => {
             }
             
             setAuthUser(userDoc); // Store it in DataProvider
-            navigate("/");
+            navigate("/home");
         } else {
             // Sign out if user document not found
             await signOut(auth);
