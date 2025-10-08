@@ -102,7 +102,7 @@ function App() {
                 {!isLoginPage && <Topbar />}
                 <Routes>
                   {/* Public Route */}
-                  <Route path="/login" element={
+                  <Route path="/" element={
                     <PublicRoute>
                       <Login />
                     </PublicRoute>
