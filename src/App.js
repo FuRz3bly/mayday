@@ -75,7 +75,7 @@ const PublicRoute = ({ children }) => {
   
   // If user is authenticated, redirect to dashboard
   if (user) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/" replace />;
   }
   
   // If not authenticated, show the public route (login page)
@@ -102,7 +102,7 @@ function App() {
                 {!isLoginPage && <Topbar />}
                 <Routes>
                   {/* Public Route */}
-                  <Route path="/" element={
+                  <Route path="/login" element={
                     <PublicRoute>
                       <Login />
                     </PublicRoute>
