@@ -257,6 +257,8 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                             >
                             {/* Name */}
                             <TextField
+                                id="station-name"
+                                name="name"
                                 fullWidth
                                 variant="filled"
                                 type="text"
@@ -264,7 +266,6 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                 onBlur={handleBlur}
                                 onChange={newHandleChange}
                                 value={values.name}
-                                name="name"
                                 error={!!touched.name && !!errors.name}
                                 helperText={touched.name && errors.name}
                                 sx={{ gridColumn: "span 4" }}
@@ -281,10 +282,11 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="station-type"
+                                        name="type"
                                         fullWidth
                                         variant="filled"
                                         label="Type"
-                                        name="type"
                                         error={!!touched.type && !!errors.type}
                                         helperText={touched.type && errors.type}
                                     />
@@ -301,10 +303,11 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                 renderInput={(params) => (
                                 <TextField
                                     {...params}
+                                    id="station-address-barangay"
+                                    name="address.barangay"
                                     fullWidth
                                     variant="filled"
                                     label="Barangay"
-                                    name="address.barangay"
                                     error={!!touched.address?.barangay && !!errors.address?.barangay}
                                     helperText={touched.address?.barangay && errors.address?.barangay}
                                 />
@@ -313,28 +316,32 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
 
                             {/* Municipality (Pre-filled) */}
                             <TextField
+                                id="station-address-municipality"
+                                name="address.municipality"
                                 fullWidth
                                 variant="filled"
                                 label="Municipality"
                                 value={values.address.municipality}
-                                name="address.municipality"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
 
                             {/* Province (Pre-filled) */}
                             <TextField
+                                id="station-address-province"
+                                name="address.province"
                                 fullWidth
                                 variant="filled"
                                 label="Province"
                                 value={values.address.province}
-                                name="address.province"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
 
                             {/* Location: Latitude */}
                             <TextField
+                                id="station-address-latitude"
+                                name="address.location.latitude"
                                 fullWidth
                                 variant="filled"
                                 type="number"
@@ -342,7 +349,6 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                 onBlur={handleBlur}
                                 onChange={newHandleChange}
                                 value={values.address.location.latitude}
-                                name="address.location.latitude"
                                 error={!!touched.address?.location?.latitude && !!errors.address?.location?.latitude}
                                 helperText={touched.address?.location?.latitude && errors.address?.location?.latitude}
                                 sx={{ gridColumn: "span 2" }}
@@ -350,6 +356,8 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
 
                             {/* Location: Longitude */}
                             <TextField
+                                id="station-address-longitude"
+                                name="address.location.longitude"
                                 fullWidth
                                 variant="filled"
                                 type="number"
@@ -357,7 +365,6 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                 onBlur={handleBlur}
                                 onChange={newHandleChange}
                                 value={values.address.location.longitude}
-                                name="address.location.longitude"
                                 error={!!touched.address?.location?.longitude && !!errors.address?.location?.longitude}
                                 helperText={touched.address?.location?.longitude && errors.address?.location?.longitude}
                                 sx={{ gridColumn: "span 2" }}
@@ -373,10 +380,11 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                 renderInput={(params) => (
                                 <TextField
                                     {...params}
+                                    id="station-service-hours"
+                                    name="service.hours"
                                     fullWidth
                                     variant="filled"
                                     label="Service Hours"
-                                    name="service.hours"
                                     error={!!touched.service?.hours && !!errors.service?.hours}
                                     helperText={touched.service?.hours && errors.service?.hours}
                                 />
@@ -437,10 +445,11 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="station-service-vehicle"
+                                        name="service.vehicle"
                                         fullWidth
                                         variant="filled"
                                         label="Service Vehicles"
-                                        name="service.vehicle"
                                         error={!!touched.service?.vehicle && !!errors.service?.vehicle}
                                         helperText={touched.service?.vehicle && errors.service?.vehicle}
                                     />
@@ -475,6 +484,8 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                 return vehicleCounts.length > 0 ? (
                                     vehicleCounts.map((v) => (
                                         <TextField
+                                            id={`service-vehicle-${v.key}-count`}
+                                            name={`service.vehicle.${v.key}.count`}
                                             key={v.type}
                                             fullWidth
                                             variant="filled"
@@ -494,6 +505,7 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                     <Box sx={{ gridColumn: "span 4" }}>
                                     {values.contacts.phone.map((phone, index) => (
                                         <TextField
+                                            id={`contacts-phone-${index}`}
                                             key={index}
                                             fullWidth
                                             variant="filled"
@@ -567,6 +579,8 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
 
                             {/* Website */}
                             <TextField
+                                id="station-website"
+                                name="contacts.website"
                                 fullWidth
                                 variant="filled"
                                 type="url"
@@ -574,7 +588,6 @@ const AddStationForm = ({ onClose, onSubmit, selectedCoords, formValues, setForm
                                 onBlur={handleBlur}
                                 onChange={newHandleChange}
                                 value={values.contacts.website}
-                                name="contacts.website"
                                 error={!!touched.contacts?.website && !!errors.contacts?.website}
                                 helperText={touched.contacts?.website && errors.contacts?.website}
                                 sx={{ gridColumn: "span 4" }}

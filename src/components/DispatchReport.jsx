@@ -167,10 +167,11 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                         >
                             {/* Reporter */}
                             <TextField
+                                id="reporter.user_id"
+                                name="reporter.user_id"
                                 fullWidth
                                 variant="filled"
                                 label="Reporter"
-                                name="reporter.user_id"
                                 value={`${values.reporter?.name.first_name} ${values.reporter?.name.last_name}`}
                                 readOnly
                                 sx={{
@@ -185,10 +186,11 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
 
                             {/* Type */}
                             <TextField
+                                id="type"
+                                name="type"
                                 fullWidth
                                 variant="filled"
                                 label="Type"
-                                name="type"
                                 value={getTypeLabel(values.type) || ""}
                                 readOnly
                                 sx={{
@@ -205,11 +207,12 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
 
                             {/* Service(s) */}
                             <TextField
+                                id="service"
+                                name="service"
                                 fullWidth
                                 variant="filled"
                                 label="Service Requirement"
                                 value={serviceOptions.find(option => option.value === values.service)?.label || ""}
-                                name="service"
                                 readOnly
                                 sx={{
                                     gridColumn: "span 2",
@@ -237,6 +240,8 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                 renderInput={(params) => (
                                     <TextField
                                     {...params}
+                                    id="incidentDate"
+                                    name="incidentDate"
                                     fullWidth
                                     variant="filled"
                                     error={!!touched.date?.incident && !!errors.date?.incident}
@@ -260,11 +265,12 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
 
                             {/* Estimated Arrival Time */}
                             <TextField
+                                id="time.estimated"
+                                name="time.estimated"
                                 fullWidth
                                 type="number"
                                 variant="filled"
                                 label="Estimated Time (minutes)"
-                                name="time.estimated"
                                 value={values.time.estimated}
                                 onChange={(e) => setFieldValue("time.estimated", Number(e.target.value))}
                                 onBlur={handleBlur}
@@ -347,10 +353,11 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                     return (
                                         <TextField
                                             {...params}
+                                            id="responders.providers"
+                                            name="responders.providers"
                                             fullWidth
                                             variant="filled"
                                             label={label}
-                                            name="responders.providers"
                                             error={!!touched.responders?.providers && !!errors.responders?.providers}
                                             helperText={touched.responders?.providers && errors.responders?.providers}
                                         />
@@ -462,10 +469,11 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                             return (
                                                 <TextField
                                                     {...params}
+                                                    id="responders.providers[1]"
+                                                    name="responders.providers[1]"
                                                     fullWidth
                                                     variant="filled"
                                                     label={label}
-                                                    name="responders.providers[1]"
                                                     error={!!touched.responders?.providers && !!errors.responders?.providers?.[1]}
                                                     helperText={touched.responders?.providers && errors.responders?.providers?.[1]}
                                                 />
@@ -565,10 +573,11 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                             return (
                                                 <TextField
                                                     {...params}
+                                                    id="responders.providers[2]"
+                                                    name="responders.providers[2]"
                                                     fullWidth
                                                     variant="filled"
                                                     label={label}
-                                                    name="responders.providers[2]"
                                                     error={!!touched.responders?.providers && !!errors.responders?.providers?.[2]}
                                                     helperText={touched.responders?.providers && errors.responders?.providers?.[2]}
                                                 />
@@ -644,10 +653,11 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                         renderInput={(params) => (
                                             <TextField
                                                 {...params}
+                                                id="responders.providers.personnel.user_id"
+                                                name="responders.providers.personnel.user_id"
                                                 fullWidth
                                                 variant="filled"
                                                 label="Select Personnel"
-                                                name="responders.providers.personnel.user_id"
                                                 error={!!touched.responders?.providers && !!errors.responders?.providers}
                                                 helperText={touched.responders?.providers && errors.responders?.providers}
                                             />
@@ -659,13 +669,14 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
                                         <>
                                             {/* First Name */}
                                             <TextField
+                                                id="personnel.name.first_name"
+                                                name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.name.first_name`}
                                                 fullWidth
                                                 variant="filled"
                                                 label="First Name"
                                                 onBlur={handleBlur}
                                                 onChange={handleChange}
                                                 value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel?.name?.first_name || ""}
-                                                name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.name.first_name`}
                                                 error={!!touched.name?.first_name && !!errors.name?.first_name}
                                                 helperText={touched.name?.first_name && errors.name?.first_name}
                                                 sx={{ gridColumn: "span 2" }}
@@ -673,13 +684,14 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
 
                                             {/* Last Name */}
                                             <TextField
+                                                id="personnel.name.last_name"
+                                                name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.name.last_name`}
                                                 fullWidth
                                                 variant="filled"
                                                 label="Last Name"
                                                 onBlur={handleBlur}
                                                 onChange={handleChange}
                                                 value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel?.name?.last_name || ""}
-                                                name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.name.last_name`}
                                                 error={!!touched.name?.last_name && !!errors.name?.last_name}
                                                 helperText={touched.name?.last_name && errors.name?.last_name}
                                                 sx={{ gridColumn: "span 2" }}
@@ -687,13 +699,14 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
 
                                             {/* Phone */}
                                             <TextField
+                                                id="personnel.phone"
+                                                name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.phone`}
                                                 fullWidth
                                                 variant="filled"
                                                 label="Phone"
                                                 onBlur={handleBlur}
                                                 onChange={handleChange}
                                                 value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel?.phone || ""}
-                                                name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.phone`}
                                                 error={!!touched.phone && !!errors.phone}
                                                 helperText={touched.phone && errors.phone}
                                                 sx={{ gridColumn: "span 4" }}
@@ -703,13 +716,14 @@ const DispatchReportForm = ({ users, stations, report, onClose }) => {
 
                                             {/* User ID */}
                                             <TextField
+                                                id={`personnel.user_id`}
+                                                name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.user_id`}
                                                 fullWidth
                                                 variant="filled"
                                                 label="User ID"
                                                 onBlur={handleBlur}
                                                 onChange={handleChange}
                                                 value={values.responders.providers.find(provider => provider.station.id === PNPID)?.personnel?.user_id || ""}
-                                                name={`responders.providers.${values.responders.providers.findIndex(provider => provider.station.id === PNPID)}.personnel.user_id`}
                                                 error={!!touched.responders?.providers?.[PNPID]?.personnel?.user_id && !!errors.responders?.providers?.[PNPID]?.personnel?.user_id}
                                                 helperText={touched.responders?.providers?.[PNPID]?.personnel?.user_id && errors.responders?.providers?.[PNPID]?.personnel?.user_id}
                                                 sx={{ gridColumn: "span 4" }}

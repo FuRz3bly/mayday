@@ -31,8 +31,15 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
       onClick={() => setSelected(title)}
       icon={icon}
     >
-      <Typography>{title}</Typography>
-      <Link to={to} />
+      <Typography>
+        <Link 
+          to={to} 
+          style={{ textDecoration: 'none', color: 'inherit' }}
+          aria-label={title}
+        >
+          {title}
+        </Link>
+      </Typography>
     </MenuItem>
   );
 };
@@ -46,7 +53,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
 
   // Map routes to menu item titles
   const routeToTitle = {
-    "/": "Dashboard",
+    "/home": "Dashboard",
     "/users": "Manage Users",
     "/reports": "Manage Reports",
     "/map": "Manage Map",

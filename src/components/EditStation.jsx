@@ -121,24 +121,26 @@ const EditStationForm = ({ station, onClose }) => {
                         >
                             {/* Station ID (Read-Only) */}
                             <TextField
+                                id="id"
+                                name="id"
                                 fullWidth
                                 variant="filled"
                                 label="Station ID"
                                 value={values.id}
-                                name="id"
                                 disabled
                                 sx={{ gridColumn: "span 4" }}
                             />
 
                             {/* Station Name */}
                             <TextField
+                                id="name"
+                                name="name"
                                 fullWidth
                                 variant="filled"
                                 label="Station Name"
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.name}
-                                name="name"
                                 error={!!touched.name && !!errors.name}
                                 helperText={touched.name && errors.name}
                                 sx={{ gridColumn: "span 4" }}
@@ -146,6 +148,8 @@ const EditStationForm = ({ station, onClose }) => {
 
                             {/* Station Type (Dropdown) */}
                             <TextField
+                                id="type"
+                                name="type"
                                 select
                                 fullWidth
                                 variant="filled"
@@ -153,7 +157,6 @@ const EditStationForm = ({ station, onClose }) => {
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.type}
-                                name="type"
                                 error={!!touched.type && !!errors.type}
                                 helperText={touched.type && errors.type}
                                 sx={{ gridColumn: "span 4" }}
@@ -175,10 +178,11 @@ const EditStationForm = ({ station, onClose }) => {
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="address.barangay"
+                                        name="address.barangay"
                                         fullWidth
                                         variant="filled"
                                         label="Barangay"
-                                        name="address.barangay"
                                         error={!!touched.address?.barangay && !!errors.address?.barangay}
                                         helperText={touched.address?.barangay && errors.address?.barangay}
                                     />
@@ -187,35 +191,38 @@ const EditStationForm = ({ station, onClose }) => {
 
                             {/* Municipality (Pre-filled) */}
                             <TextField
+                                id="address.municipality"
+                                name="address.municipality"
                                 fullWidth
                                 variant="filled"
                                 label="Municipality"
                                 value={values.address.municipality}
-                                name="address.municipality"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
 
                             {/* Province (Pre-filled) */}
                             <TextField
+                                id="address.province"
+                                name="address.province"
                                 fullWidth
                                 variant="filled"
                                 label="Province"
                                 value={values.address.province}
-                                name="address.province"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
 
                             {/* Latitude */}
                             <TextField
+                                id="address.location.latitude"
+                                name="address.location.latitude"
                                 fullWidth
                                 variant="filled"
                                 label="Latitude"
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.address.location.latitude}
-                                name="address.location.latitude"
                                 error={!!touched.address?.location?.latitude && !!errors.address?.location?.latitude}
                                 helperText={touched.address?.location?.latitude && errors.address?.location?.latitude}
                                 sx={{ gridColumn: "span 2" }}
@@ -223,13 +230,14 @@ const EditStationForm = ({ station, onClose }) => {
 
                             {/* Longitude */}
                             <TextField
+                                id="address.location.longitude"
+                                name="address.location.longitude"
                                 fullWidth
                                 variant="filled"
                                 label="Longitude"
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.address.location.longitude}
-                                name="address.location.longitude"
                                 error={!!touched.address?.location?.longitude && !!errors.address?.location?.longitude}
                                 helperText={touched.address?.location?.longitude && errors.address?.location?.longitude}
                                 sx={{ gridColumn: "span 2" }}
@@ -245,10 +253,11 @@ const EditStationForm = ({ station, onClose }) => {
                                 renderInput={(params) => (
                                 <TextField
                                     {...params}
+                                    id="service.hours"
+                                    name="service.hours"
                                     fullWidth
                                     variant="filled"
                                     label="Service Hours"
-                                    name="service.hours"
                                     error={!!touched.service?.hours && !!errors.service?.hours}
                                     helperText={touched.service?.hours && errors.service?.hours}
                                 />
@@ -295,10 +304,11 @@ const EditStationForm = ({ station, onClose }) => {
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="service.vehicle"
+                                        name="service.vehicle"
                                         fullWidth
                                         variant="filled"
                                         label="Service Vehicles"
-                                        name="service.vehicle"
                                         error={!!touched.service?.vehicle && !!errors.service?.vehicle}
                                         helperText={touched.service?.vehicle && errors.service?.vehicle}
                                     />
@@ -325,6 +335,8 @@ const EditStationForm = ({ station, onClose }) => {
                                     vehicleCounts.map((v) => (
                                         <TextField
                                             key={v.type}
+                                            id={`service-vehicle-${v.key}-count`}  // ✅ ADD THIS
+                                            name={`service.vehicle.${v.key}.count`}
                                             fullWidth
                                             variant="filled"
                                             label={v.type}
@@ -344,6 +356,8 @@ const EditStationForm = ({ station, onClose }) => {
                                         {values.contacts.phone.map((phone, index) => (
                                             <TextField
                                                 key={index}
+                                                id={`contacts.phone[${index}]`}
+                                                name={`contacts.phone[${index}]`}
                                                 fullWidth
                                                 variant="filled"
                                                 label={`Phone Number ${index + 1}`}
@@ -351,7 +365,6 @@ const EditStationForm = ({ station, onClose }) => {
                                                 onBlur={handleBlur}
                                                 onChange={handleChange}
                                                 value={phone}
-                                                name={`contacts.phone[${index}]`}
                                                 error={!!touched.contacts?.phone?.[index] && !!errors.contacts?.phone?.[index]}
                                                 helperText={touched.contacts?.phone?.[index] && errors.contacts?.phone?.[index]}
                                                 slotProps={{
@@ -380,13 +393,14 @@ const EditStationForm = ({ station, onClose }) => {
 
                             {/* Website Field */}
                             <TextField
+                                id="contacts.website"
+                                name="contacts.website"
                                 fullWidth
                                 variant="filled"
                                 label="Website (Optional)"
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.contacts.website}
-                                name="contacts.website"
                                 error={!!touched.contacts?.website && !!errors.contacts?.website}
                                 helperText={touched.contacts?.website && errors.contacts?.website}
                                 sx={{ gridColumn: "span 4" }}

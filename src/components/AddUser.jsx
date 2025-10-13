@@ -183,13 +183,14 @@ const AddUserForm = ({ onClose, stations }) => {
             >
               {/* First Name */}
               <TextField
+                id="first-name"
+                name="name.first_name"
                 fullWidth
                 variant="filled"
                 label="First Name"
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.name.first_name}
-                name="name.first_name"
                 error={!!touched.name?.first_name && !!errors.name?.first_name}
                 helperText={touched.name?.first_name && errors.name?.first_name}
                 sx={{ gridColumn: "span 2" }}
@@ -197,13 +198,14 @@ const AddUserForm = ({ onClose, stations }) => {
 
               {/* Last Name */}
               <TextField
+                id="last-name"
+                name="name.last_name"
                 fullWidth
                 variant="filled"
                 label="Last Name"
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.name.last_name}
-                name="name.last_name"
                 error={!!touched.name?.last_name && !!errors.name?.last_name}
                 helperText={touched.name?.last_name && errors.name?.last_name}
                 sx={{ gridColumn: "span 2" }}
@@ -211,13 +213,14 @@ const AddUserForm = ({ onClose, stations }) => {
 
               {/* Email */}
               <TextField
+                id="email"
+                name="email"
                 fullWidth
                 variant="filled"
                 label="Email"
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.email}
-                name="email"
                 error={!!touched.email && !!errors.email}
                 helperText={touched.email && errors.email}
                 sx={{ gridColumn: "span 4" }}
@@ -225,13 +228,14 @@ const AddUserForm = ({ onClose, stations }) => {
 
               {/* Phone */}
               <TextField
+                id="phone"
+                name="phone"
                 fullWidth
                 variant="filled"
                 label="Phone"
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.phone}
-                name="phone"
                 error={!!touched.phone && !!errors.phone}
                 helperText={touched.phone && errors.phone}
                 sx={{ gridColumn: "span 4" }}
@@ -251,6 +255,8 @@ const AddUserForm = ({ onClose, stations }) => {
                 renderInput={(params) => (
                   <TextField
                     {...params}
+                    id="birthdate"
+                    name="birthdate"
                     fullWidth
                     variant="filled"
                     error={!!touched.birthdate && !!errors.birthdate}
@@ -288,10 +294,11 @@ const AddUserForm = ({ onClose, stations }) => {
                 renderInput={(params) => (
                   <TextField
                     {...params}
+                    id="role"
+                    name="role"
                     fullWidth
                     variant="filled"
                     label="Role"
-                    name="role"
                     error={!!touched.role && !!errors.role}
                     helperText={touched.role && errors.role}
                   />
@@ -318,6 +325,7 @@ const AddUserForm = ({ onClose, stations }) => {
                   renderInput={(params) => (
                     <TextField
                       {...params}
+                      id="role-type"
                       fullWidth
                       variant="filled"
                       label="Responder Type"
@@ -348,10 +356,11 @@ const AddUserForm = ({ onClose, stations }) => {
                   renderInput={(params) => (
                     <TextField
                       {...params}
+                      id="admin-type"
                       fullWidth
                       variant="filled"
                       label="Admin Type"
-                      name="roleType"
+                      name="admminType"
                       error={!!touched.roleType && !!errors.roleType}
                       helperText={touched.roleType && errors.roleType}
                     />
@@ -364,6 +373,7 @@ const AddUserForm = ({ onClose, stations }) => {
                 <>
                     {/* Rank */}
                     <TextField
+                        id="rank"
                         fullWidth
                         variant="filled"
                         label="Rank"
@@ -396,10 +406,11 @@ const AddUserForm = ({ onClose, stations }) => {
                         renderInput={(params) => (
                             <TextField
                                 {...params}
+                                id="station"
+                                name="station"
                                 fullWidth
                                 variant="filled"
                                 label="Station"
-                                name="station"
                                 error={!!touched.station && !!errors.station}
                                 helperText={touched.station && errors.station}
                             />
@@ -418,10 +429,11 @@ const AddUserForm = ({ onClose, stations }) => {
                 renderInput={(params) => (
                   <TextField
                     {...params}
+                    id="address-barangay"
+                    name="address.barangay"
                     fullWidth
                     variant="filled"
-                    label="Barangay"
-                    name="address.barangay"
+                    label="Barangay" 
                     error={!!touched.address?.barangay && !!errors.address?.barangay}
                     helperText={touched.address?.barangay && errors.address?.barangay}
                   />
@@ -430,28 +442,32 @@ const AddUserForm = ({ onClose, stations }) => {
 
               {/* Municipality (Pre-filled) */}
               <TextField
+                id="address-municipality"
+                name="address.municipality"
                 fullWidth
                 variant="filled"
                 label="Municipality"
                 value={values.address.municipality}
-                name="address.municipality"
                 disabled
                 sx={{ gridColumn: "span 2" }}
               />
 
               {/* Province (Pre-filled) */}
               <TextField
+                id="address-province"
+                name="address.province"
                 fullWidth
                 variant="filled"
                 label="Province"
                 value={values.address.province}
-                name="address.province"
                 disabled
                 sx={{ gridColumn: "span 2" }}
               />
 
               {/* Password Field */}
               <TextField
+                id="password"
+                name="password"
                 fullWidth
                 variant="filled"
                 label="Password"
@@ -459,7 +475,6 @@ const AddUserForm = ({ onClose, stations }) => {
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.password}
-                name="password"
                 error={!!touched.password && !!errors.password}
                 helperText={touched.password && errors.password}
                 sx={{ gridColumn: "span 4" }}

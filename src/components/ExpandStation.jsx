@@ -105,11 +105,12 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
                         >
                             {/* Name */}
                             <TextField
+                                id="name"
+                                name="name"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Name"
-                                name="name"
                                 value={values.name}
                                 readOnly
                                 sx={{
@@ -124,11 +125,12 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
 
                             {/* Type */}
                             <TextField
+                                id="type"
+                                name="type"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Type"
-                                name="type"
                                 value={capitalize(values.type)}
                                 readOnly
                                 sx={{
@@ -143,11 +145,12 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
 
                             {/* Responders */}
                             <TextField
+                                id="responders"
+                                name="responders"
                                 fullWidth
                                 variant="filled"
                                 label="Responders"
                                 value={values?.responders || 0}
-                                name="responders"
                                 readOnly
                                 sx={{ 
                                     gridColumn: "span 1",
@@ -161,11 +164,12 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
 
                             {/* Barangay */}
                             <TextField
+                                id="address.barangay"
+                                name="address.barangay"
                                 fullWidth
                                 variant="filled"
                                 label="Barangay"
                                 value={values.address.barangay}
-                                name="address.barangay"
                                 readOnly
                                 sx={{
                                     gridColumn: "span 2",
@@ -179,11 +183,12 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
 
                             {/* Municipality (Pre-filled) */}
                             <TextField
+                                id="address.municipality"
+                                name="address.municipality"
                                 fullWidth
                                 variant="filled"
                                 label="Municipality"
                                 value={values.address.municipality}
-                                name="address.municipality"
                                 readOnly
                                 sx={{
                                     gridColumn: "span 1",
@@ -197,11 +202,12 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
 
                             {/* Province (Pre-filled) */}
                             <TextField
+                                id="address.province"
+                                name="address.province"
                                 fullWidth
                                 variant="filled"
                                 label="Province"
                                 value={values.address.province}
-                                name="address.province"
                                 readOnly
                                 sx={{
                                     gridColumn: "span 1",
@@ -215,12 +221,13 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
 
                             {/* Phone Numbers */}
                             <TextField
+                                id="contacts.phoneFormatted"
+                                name="contacts.phoneFormatted"
                                 fullWidth
                                 variant="filled"
                                 type="text"
                                 label={`Phone Number${values.contacts.phoneList.length > 1 ? 's' : ''}`}
                                 value={values.contacts.phoneFormatted}
-                                name="contacts.phoneFormatted"
                                 readOnly
                                 sx={{ 
                                     gridColumn: "span 2",
@@ -234,11 +241,12 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
 
                             {/* Website */}
                             <TextField
+                                id="contacts.website"
+                                name="contacts.website"
                                 fullWidth
                                 variant="filled"
                                 label="Website"
                                 value={values?.contacts?.website || "N/A"}
-                                name="contacts.website"
                                 readOnly
                                 sx={{
                                     gridColumn: "span 2",
@@ -252,6 +260,8 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
 
                             {/* Services */}
                             <TextField
+                                id="services"
+                                name="services"
                                 fullWidth
                                 variant="filled"
                                 label="Service Vehicles"
@@ -290,6 +300,8 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
                                     vehicleCounts.map((v) => (
                                         <TextField
                                             key={v.type}
+                                            id={`service-vehicle-${v.key}-count`}
+                                            name={`service.vehicle.${v.key}.count`}
                                             fullWidth
                                             variant="filled"
                                             label={v.type}
@@ -310,11 +322,12 @@ const ExpandStation = ({ onClose, stations, editStation }) => {
 
                             {/* Service Hours */}
                             <TextField
+                                id="service.hours"
+                                name="service.hours"
                                 fullWidth
                                 variant="filled"
                                 label="Service Hours"
                                 value={values?.service?.hours || "N/A"}
-                                name="service.hours"
                                 readOnly
                                 sx={{
                                     gridColumn: "span 1",

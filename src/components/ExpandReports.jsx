@@ -487,11 +487,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                 {/* Name */}
                 <TextField
+                    id={`${stationPrefix}Name`}
+                    name={`${stationPrefix}Name`}
                     fullWidth
                     type="text"
                     variant="filled"
                     label="Name"
-                    name={`${stationPrefix}Name`}
                     value={values[`${stationPrefix}Name`]}
                     readOnly
                     sx={{
@@ -506,11 +507,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                 {/* Type */}
                 <TextField
+                    id={`${stationPrefix}Type`}
+                    name={`${stationPrefix}Type`}
                     fullWidth
                     type="text"
                     variant="filled"
                     label="Type"
-                    name={`${stationPrefix}Type`}
                     value={values[`${stationPrefix}Type`]}
                     readOnly
                     sx={{
@@ -525,11 +527,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                 {/* Service */}
                 <TextField
+                    id={`${stationPrefix}Service`}
+                    name={`${stationPrefix}Service`}
                     fullWidth
                     type="text"
                     variant="filled"
                     label="Service"
-                    name={`${stationPrefix}Service`}
                     value={values[`${stationPrefix}Service`]}
                     readOnly
                     sx={{
@@ -547,11 +550,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                     <>
                         {/* Name */}
                         <TextField
+                            id={`${stationPrefix}PersonnelName`}
+                            name={`${stationPrefix}PersonnelName`}
                             fullWidth
                             type="text"
                             variant="filled"
                             label="Personnel Name"
-                            name={`${stationPrefix}PersonnelName`}
                             value={values[`${stationPrefix}PersonnelName`]}
                             readOnly
                             sx={{
@@ -566,11 +570,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                         
                         {/* Phone */}
                         <TextField
+                            id={`${stationPrefix}PersonnelPhone`}
+                            name={`${stationPrefix}PersonnelPhone`}
                             fullWidth
                             type="text"
                             variant="filled"
                             label="Phone"
-                            name={`${stationPrefix}PersonnelPhone`}
                             value={values[`${stationPrefix}PersonnelPhone`]}
                             readOnly
                             onClick={() => {
@@ -604,11 +609,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                     <>
                         {/* ETA */}
                         <TextField
+                            id={`${stationPrefix}ETA`}
+                            name={`${stationPrefix}ETA`}
                             fullWidth
                             type="text"
                             variant="filled"
                             label="Estimated Time of Arrival"
-                            name={`${stationPrefix}ETA`}
                             value={values[`${stationPrefix}ETA`] || "Not provided"}
                             readOnly
                             sx={{
@@ -623,11 +629,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                         
                         {/* Response Date - Display if available (typically available when status is 2) */}
                         <TextField
+                            id={`${stationPrefix}ResponseDate`}
+                            name={`${stationPrefix}ResponseDate`}
                             fullWidth
                             type="text"
                             variant="filled"
                             label="Response Date"
-                            name={`${stationPrefix}ResponseDate`}
                             value={values[`${stationPrefix}ResponseDate`] || "Not provided"}
                             readOnly
                             sx={{
@@ -645,11 +652,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                             <>
                                 {/* Arrival Time */}
                                 <TextField
+                                    id={`${stationPrefix}ArrivalTime`}
+                                    name={`${stationPrefix}ArrivalTime`}
                                     fullWidth
                                     type="text"
                                     variant="filled"
                                     label="Arrival Time"
-                                    name={`${stationPrefix}ArrivalTime`}
                                     value={values[`${stationPrefix}ArrivalTime`] || "Not recorded"}
                                     readOnly
                                     sx={{
@@ -664,11 +672,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                                 
                                 {/* Arrival Date */}
                                 <TextField
+                                    id={`${stationPrefix}ArrivalDate`}
+                                    name={`${stationPrefix}ArrivalDate`}
                                     fullWidth
                                     type="text"
                                     variant="filled"
                                     label="Arrival Date"
-                                    name={`${stationPrefix}ArrivalDate`}
                                     value={values[`${stationPrefix}ArrivalDate`] || "Not recorded"}
                                     readOnly
                                     sx={{
@@ -689,11 +698,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                     <>
                         {/* Resolved Time */}
                         <TextField
+                            id={`${stationPrefix}ResolvedTime`}
+                            name={`${stationPrefix}ResolvedTime`}
                             fullWidth
                             type="text"
                             variant="filled"
                             label="Resolved Time"
-                            name={`${stationPrefix}ResolvedTime`}
                             value={values[`${stationPrefix}ResolvedTime`] || "Not recorded"}
                             readOnly
                             sx={{
@@ -708,11 +718,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                         
                         {/* Resolved Date */}
                         <TextField
+                            id={`${stationPrefix}ResolvedDate`}
+                            name={`${stationPrefix}ResolvedDate`}
                             fullWidth
                             type="text"
                             variant="filled"
                             label="Resolved Date"
-                            name={`${stationPrefix}ResolvedDate`}
                             value={values[`${stationPrefix}ResolvedDate`] || "Not recorded"}
                             readOnly
                             sx={{
@@ -862,11 +873,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Report ID */}
                             <TextField
+                                id="reportID"
+                                name="reportID"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Report ID"
-                                name="id"
                                 value={values.id}
                                 readOnly
                                 sx={{
@@ -881,11 +893,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Type */}
                             <TextField
+                                id="reportType"
+                                name="reportType"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Type"
-                                name="type"
                                 value={values.type}
                                 readOnly
                                 sx={{
@@ -900,11 +913,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Status */}
                             <TextField
+                                id="status"
+                                name="status"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Status"
-                                name="status"
                                 value={values.status}
                                 readOnly
                                 sx={{
@@ -919,11 +933,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Report Location */}
                             <TextField
+                                id="address"
+                                name="address"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Report Location"
-                                name="address"
                                 value={values.address}
                                 readOnly
                                 sx={{
@@ -938,11 +953,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Service */}
                             <TextField
+                                id="services"
+                                name="services"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Services"
-                                name="service"
                                 value={values.service}
                                 readOnly
                                 sx={{
@@ -957,11 +973,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Incident Date */}
                             <TextField
+                                id="incidentDate"
+                                name="incidentDate"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Incident Date"
-                                name="incidentDate"
                                 value={values.incidentDate}
                                 readOnly
                                 sx={{
@@ -992,11 +1009,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                                 components.push(
                                     <TextField
                                         key="flag"
+                                        id="reportFlag"
+                                        name="reportFlag"
                                         fullWidth
                                         type="text"
                                         variant="filled"
                                         label="Flag"
-                                        name="reportFlag"
                                         value={values.reportFlag}
                                         readOnly
                                         sx={{
@@ -1011,11 +1029,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                                     components.push(
                                         <TextField
                                             key="eta"
+                                            id="tempETA"
+                                            name="tempETA"
                                             fullWidth
                                             type="text"
                                             variant="filled"
                                             label="Estimated Time of Arrival"
-                                            name="tempETA"
                                             value={values.tempETA}
                                             readOnly
                                             sx={{
@@ -1031,11 +1050,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
                                     components.push(
                                         <TextField
                                             key="receivedTime"
+                                            id="receivedDate"
+                                            name="receivedDate"
                                             fullWidth
                                             type="text"
                                             variant="filled"
                                             label="Received Time"
-                                            name="receivedDate"
                                             value={values.receivedDate}
                                             readOnly
                                             sx={{
@@ -1061,11 +1081,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Full Name */}
                             <TextField
+                                id="reporterName"
+                                name="reporterName"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Full Name"
-                                name="name"
                                 value={values.name}
                                 readOnly
                                 sx={{
@@ -1080,11 +1101,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Phone */}
                             <TextField
+                                id="reporterPhone"
+                                name="reporterPhone"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Phone Number"
-                                name="phone"
                                 value={values.phone}
                                 readOnly
                                 onClick={() => {
@@ -1114,11 +1136,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Address */}
                             <TextField
+                                id="reporterAddress"
+                                name="reporterAddress"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Address"
-                                name="address"
                                 value={values.reporterAddress}
                                 readOnly
                                 sx={{
@@ -1133,11 +1156,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Age */}
                             <TextField
+                                id="age"
+                                name="age"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Age"
-                                name="age"
                                 value={values.age}
                                 readOnly
                                 sx={{
@@ -1152,11 +1176,12 @@ const ExpandReports = ({ onClose, reports, editReport }) => {
 
                             {/* Birthdate */}
                             <TextField
+                                id="birthdate"
+                                name="birthdate"
                                 fullWidth
                                 type="text"
                                 variant="filled"
                                 label="Birthdate"
-                                name="birthdate"
                                 value={values.birthdate}
                                 readOnly
                                 sx={{

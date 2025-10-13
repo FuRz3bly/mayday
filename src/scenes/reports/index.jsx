@@ -1,5 +1,5 @@
 // React & Hooks
-import { useState, useEffect, useContext, useRef } from "react";  
+import { useState, useEffect, useContext, useCallback, useRef } from "react";  
 
 // Material UI (MUI) Components 
 import {  
@@ -81,6 +81,14 @@ const Reports = () => {
   const prevSelectedStatus = useRef(selectedStatus);
 
   const [isTimeMinimal, setTimeMinimal] = useState(false); // If the Table has Real-time updates
+  const [stationsCheckInterval, setStationsCheckInterval] = useState(null);
+  const [usersCheckInterval, setUsersCheckInterval] = useState(null);
+
+  // Add a new snackbar message
+  const addSnackbar = useCallback((message, severity = "info") => {
+    const id = new Date().getTime(); // Unique ID for each snackbar
+    setSnackbars(prev => [...prev, { id, message, severity }]);
+  }, []); // Empty dependency array since it only uses setSnackbars (which is stable)
 
   // Load previously viewed reports from localStorage on component mount
   useEffect(() => {
@@ -117,8 +125,8 @@ const Reports = () => {
 
   // Format reports when "reports" changes
   useEffect(() => {
-    if (!loadingReports) {
-      // Get current IDs for comparison
+    if (!loadingReports && reports.length > 0) {
+      /* // Get current IDs for comparison
       const currentIds = new Set(reports.map(report => report.id));
       const previousIds = new Set(formattedReports.map(report => report.id));
       
@@ -126,27 +134,16 @@ const Reports = () => {
       const isFirstMount = formattedReports.length === 0 && reports.length > 0;
       
       // Find new reports (in current but not in previous or viewed)
-      const newIds = new Set();
-
-      // Track false reports
-      const falseIds = new Set();
-      reports.forEach(report => {
-        if (report.flags?.report === false) {
-          falseIds.add(report.id);
-        }
-      });
-      
-      // Update false report IDs state
-      setFalseReportIds(falseIds);
+      const newIds = new Set(); */
       
       // Only look for new reports if this isn't the first mount
-      if (!isFirstMount) {
+      /* if (!isFirstMount) {
         currentIds.forEach(id => {
           if (!previousIds.has(id) && !viewedReports.has(id)) {
             newIds.add(id);
           }
         });
-      }
+      } */
 
       const formatted = reports.map((report) => {
         const incidentDateTime = report.date?.incident ? report.date.incident.toDate() : null;
@@ -274,7 +271,7 @@ const Reports = () => {
 
       setFormattedReports(formatted);
 
-      if (!isFirstMount && newIds.size > 0) {
+      /* if (!isFirstMount && newIds.size > 0) {
         const updatedNewReportIds = new Set([...newReportIds, ...newIds]);
         setNewReportIds(updatedNewReportIds);
 
@@ -300,13 +297,76 @@ const Reports = () => {
         const initialViewedSet = new Set([...viewedReports, ...currentIds]);
         setViewedReports(initialViewedSet);
         localStorage.setItem('viewedReports', JSON.stringify([...initialViewedSet]));
-      }
+      } */
     }
   // eslint-disable-next-line
-  }, [reports, loadingReports, formattedReports.length, newReportIds, falseReportIds, playingAlarm]);
+  }, [reports, loadingReports]);
+
+  // Track false reports
+  useEffect(() => {
+    // Track false reports
+    const falseIds = new Set();
+    reports.forEach(report => {
+      if (report.flags?.report === false) {
+        falseIds.add(report.id);
+      }
+    });
+    
+    // Update false report IDs state
+    setFalseReportIds(falseIds);
+  }, [reports]);
+
+  const previousReportsRef = useRef(new Set());
+  const isFirstMountRef = useRef(true);
 
   useEffect(() => {
+    if (loadingReports) return;
+
+    const currentIds = new Set(reports.map(r => r.id));
+    
+    // Handle first mount
+    if (isFirstMountRef.current && reports.length > 0) {
+      previousReportsRef.current = currentIds;
+      
+      const initialViewedSet = new Set([...viewedReports, ...currentIds]);
+      setViewedReports(initialViewedSet);
+      localStorage.setItem('viewedReports', JSON.stringify([...initialViewedSet]));
+      
+      isFirstMountRef.current = false;
+      return;
+    }
+
+    const newIds = new Set();
+
+    currentIds.forEach(id => {
+      if (!previousReportsRef.current.has(id) && !viewedReports.has(id)) {
+        newIds.add(id);
+      }
+    });
+
+    if (newIds.size > 0) {
+      setNewReportIds(prev => new Set([...prev, ...newIds]));
+      setPlayingAlarm(true);
+      
+      // Show notifications
+      [...newIds].forEach(id => {
+        const report = reports.find(r => r.id === id);
+        if (report) {
+          const reportType = getTypeLabel(report.type);
+          const message = `New ${reportType} report received!`;
+          addSnackbar(message, "info");
+        }
+      });
+    }
+
+    previousReportsRef.current = currentIds;
+  }, [reports, loadingReports, viewedReports, addSnackbar]); 
+
+  // Alarm
+  useEffect(() => {
     const audioElement = alertSoundRef.current;
+    
+    if (!audioElement) return; // Safety check
     
     // Configure audio to loop
     audioElement.loop = true;
@@ -332,7 +392,7 @@ const Reports = () => {
       audioElement.currentTime = 0;
     }
     
-    // Cleanup function
+    // CRITICAL: Remove the event listener on cleanup
     return () => {
       audioElement.removeEventListener('ended', handleEnded);
       audioElement.pause();
@@ -368,6 +428,14 @@ const Reports = () => {
     }
   }, [reports, selectedReports, expandVisible]);
 
+  // IMPORTANT: Add cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      if (stationsCheckInterval) clearInterval(stationsCheckInterval);
+      if (usersCheckInterval) clearInterval(usersCheckInterval);
+    };
+  }, [stationsCheckInterval, usersCheckInterval]);
+
   // Filtered Rows Based on Report Type and Status
   const filteredRows = formattedReports.filter((row) => {
     const matchesType = selectedType === "all" || row.service === serviceText[Number(selectedType)];
@@ -387,6 +455,20 @@ const Reports = () => {
   const handleToggleListener = () => {
     if (isListening) {
       stopReportsListener();
+      
+      // CRITICAL: Clear any running intervals
+      if (stationsCheckInterval) {
+        clearInterval(stationsCheckInterval);
+        setStationsCheckInterval(null);
+      }
+      if (usersCheckInterval) {
+        clearInterval(usersCheckInterval);
+        setUsersCheckInterval(null);
+      }
+      
+      // Optionally stop these if they're still running
+      stopStationsListener();
+      stopUsersListener();
     } else {
       // Start all listeners
       startReportsListener();
@@ -397,8 +479,10 @@ const Reports = () => {
         if (stations && stations.length > 0) {
           stopStationsListener();
           clearInterval(stationsCheck);
+          setStationsCheckInterval(null);
         }
-      }, 1000); // Check every second
+      }, 1000);
+      setStationsCheckInterval(stationsCheck);
       
       // Start users listener and set up auto-stop
       startUsersListener();
@@ -406,8 +490,10 @@ const Reports = () => {
         if (users && users.length > 0) {
           stopUsersListener();
           clearInterval(usersCheck);
+          setUsersCheckInterval(null);
         }
-      }, 1000); // Check every second
+      }, 1000);
+      setUsersCheckInterval(usersCheck);
     }
     
     setIsListening(!isListening);
@@ -617,7 +703,18 @@ const Reports = () => {
           <GridToolbarExport />
           {/* Search Input */}
           <Box display="flex" sx={{ marginLeft: '50px', marginTop: '5px' }}>
-            <GridToolbarQuickFilter />
+            <GridToolbarQuickFilter 
+              slotProps={{
+                textField: {
+                  id: 'report-search-filter',
+                  name: 'reportSearch',
+                  'aria-label': 'Search reports',
+                  InputLabelProps: {
+                    id: 'search-label'
+                  }
+                }
+              }}
+            />
           </Box>
         </Box>
         
@@ -651,6 +748,7 @@ const Reports = () => {
           >
             <FormControl sx={{ minWidth: 200, marginRight: 3 }}>
               <InputLabel
+                id="report-status-label"
                 sx={{
                   backgroundColor: theme.palette.mode === 'dark' ? colors.primary[500] : "#fcfcfc",
                   color: colors.grey[100],
@@ -660,7 +758,13 @@ const Reports = () => {
               >
                 {"Report Status"}
               </InputLabel>
-              <Select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+              <Select
+                id="report-status-select"
+                labelId="report-status-label"
+                name="reportStatus"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
                 {reportStatus.map((status) => (
                   <MenuItem key={status.value} value={status.value}>
                     {status.label}
@@ -678,6 +782,7 @@ const Reports = () => {
           >
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel
+              id="report-service-label"
               sx={{
                 backgroundColor: theme.palette.mode === 'dark' ? colors.primary[500] : "#fcfcfc",
                 color: colors.grey[100],
@@ -686,7 +791,13 @@ const Reports = () => {
               }}>
                 {'Services Required'}
               </InputLabel>
-            <Select value={selectedType} onChange={handleTypeSelect}>
+            <Select
+              id="report-service-select"
+              labelId="report-service-label"
+              name="serviceType"
+              value={selectedType}
+              onChange={handleTypeSelect}
+            >
               {reportTypes.map((type) => (
                 <MenuItem key={type.value} value={type.value}>
                   {type.label}
@@ -1030,12 +1141,6 @@ const Reports = () => {
       return 'new-report-row';
     }
     return '';
-  };
-
-  // Add a new snackbar message
-  const addSnackbar = (message, severity = "info") => {
-    const id = new Date().getTime(); // Unique ID for each snackbar
-    setSnackbars(prev => [...prev, { id, message, severity }]);
   };
 
   // Remove a snackbar by ID

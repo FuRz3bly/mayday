@@ -178,6 +178,7 @@ const AddReportForm = ({ onClose, users }) => {
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
+                                            id="reporter.user_id"
                                             fullWidth
                                             variant="filled"
                                             label="Select Reporter"
@@ -223,6 +224,7 @@ const AddReportForm = ({ onClose, users }) => {
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
+                                            id="report-type"
                                             fullWidth
                                             variant="filled"
                                             label="Report Type"
@@ -244,6 +246,7 @@ const AddReportForm = ({ onClose, users }) => {
                                     renderInput={(params) => (
                                         <TextField
                                         {...params}
+                                        id="service"
                                         fullWidth
                                         variant="filled"
                                         label="Service(s)"
@@ -264,6 +267,7 @@ const AddReportForm = ({ onClose, users }) => {
                                     renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="address-barangay"
                                         fullWidth
                                         variant="filled"
                                         label="Barangay"
@@ -276,6 +280,7 @@ const AddReportForm = ({ onClose, users }) => {
                 
                                 {/* Municipality (Pre-filled) */}
                                 <TextField
+                                    id="address-municipality"
                                     fullWidth
                                     variant="filled"
                                     label="Municipality"
@@ -287,6 +292,7 @@ const AddReportForm = ({ onClose, users }) => {
                 
                                 {/* Province (Pre-filled) */}
                                 <TextField
+                                    id="address-province"
                                     fullWidth
                                     variant="filled"
                                     label="Province"
@@ -298,6 +304,7 @@ const AddReportForm = ({ onClose, users }) => {
                 
                                 {/* Location: Latitude */}
                                 <TextField
+                                    id="address-latitude"
                                     fullWidth
                                     variant="filled"
                                     type="number"
@@ -313,6 +320,7 @@ const AddReportForm = ({ onClose, users }) => {
                 
                                 {/* Location: Longitude */}
                                 <TextField
+                                    id="address-longitude"
                                     fullWidth
                                     variant="filled"
                                     type="number"
@@ -328,6 +336,7 @@ const AddReportForm = ({ onClose, users }) => {
 
                                 {/* Incident Date */}
                                 <DateTimePicker
+                                    id="date-picker"
                                     label="Incident Date"
                                     value={values.date.incident}
                                     onChange={(date) => setFieldValue("date.incident", date)}
@@ -338,6 +347,7 @@ const AddReportForm = ({ onClose, users }) => {
                                     renderInput={(params) => (
                                         <TextField
                                         {...params}
+                                        id="incident-date"
                                         fullWidth
                                         variant="filled"
                                         error={!!touched.date?.incident && !!errors.date?.incident}

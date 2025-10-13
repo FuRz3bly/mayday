@@ -156,24 +156,26 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                         >
                             {/* Report ID (Non-editable) */}
                             <TextField
+                                id="reportID"
+                                name="reportID"
                                 fullWidth
                                 variant="filled"
                                 type="text"
                                 label="Report ID"
                                 value={values.id}
-                                name="reportID"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
 
                             {/* User ID (Non-editable) */}
                             <TextField
+                                id="userID"
+                                name="userID"
                                 fullWidth
                                 variant="filled"
                                 type="text"
                                 label="User ID"
                                 value={values.reporter?.user_id}
-                                name="userID"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
@@ -189,10 +191,11 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 renderInput={(params) => (
                                     <TextField
                                     {...params}
+                                    id="status"
+                                    name="status"
                                     fullWidth
                                     variant="filled"
                                     label="Status"
-                                    name="status"
                                     error={!!touched.status && !!errors.status}
                                     helperText={touched.status && errors.status}
                                     />
@@ -235,10 +238,11 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="reporter.user_id"
+                                        name="reporter.user_id"
                                         fullWidth
                                         variant="filled"
                                         label="Select Reporter"
-                                        name="reporter.user_id"
                                         error={
                                             !!touched.reporter?.user_id && 
                                             !!errors.reporter?.user_id
@@ -259,10 +263,11 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 renderInput={(params) => (
                                 <TextField
                                     {...params}
+                                    id="reporter.address.barangay"
+                                    name="reporter.address.barangay"
                                     fullWidth
                                     variant="filled"
                                     label="User Barangay"
-                                    name="reporter.address.barangay"
                                     error={!!touched.reporter?.address?.barangay && !!errors.reporter?.address?.barangay}
                                     helperText={touched.reporter?.address?.barangay && errors.reporter?.address?.barangay}
                                 />
@@ -271,13 +276,14 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
             
                             {/* Phone Number */}
                             <TextField
+                                id="phone"
+                                name="phone"
                                 fullWidth
                                 variant="filled"
                                 type="text"
                                 label="Phone Number"
                                 disabled
                                 value={values.reporter?.phone}
-                                name="phone"
                                 sx={{ gridColumn: "span 1" }}
                             />
             
@@ -293,6 +299,8 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="birthdate"
+                                        name="birthdate"
                                         fullWidth
                                         variant="filled"
                                         error={!!touched.reporter.birthdate && !!errors.reporter.birthdate}
@@ -328,10 +336,11 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="service"
+                                        name="service"
                                         fullWidth
                                         variant="filled"
                                         label="Service(s)"
-                                        name="service"
                                         error={!!touched.service && !!errors.service}
                                         helperText={touched.service && errors.service}
                                     />
@@ -348,10 +357,11 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 renderInput={(params) => (
                                 <TextField
                                     {...params}
+                                    id="address.barangay"
+                                    name="address.barangay"
                                     fullWidth
                                     variant="filled"
                                     label="Barangay"
-                                    name="address.barangay"
                                     error={!!touched.address?.barangay && !!errors.address?.barangay}
                                     helperText={touched.address?.barangay && errors.address?.barangay}
                                 />
@@ -360,28 +370,32 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
             
                             {/* Municipality (Pre-filled) */}
                             <TextField
+                                id="address.municipality"
+                                name="address.municipality"
                                 fullWidth
                                 variant="filled"
                                 label="Municipality"
                                 value={values.address.municipality}
-                                name="address.municipality"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
             
                             {/* Province (Pre-filled) */}
                             <TextField
+                                id="address.province"
+                                name="address.province"
                                 fullWidth
                                 variant="filled"
                                 label="Province"
                                 value={values.address.province}
-                                name="address.province"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
             
                             {/* Location: Latitude */}
                             <TextField
+                                id="address.location.latitude"
+                                name="address.location.latitude"
                                 fullWidth
                                 variant="filled"
                                 type="number"
@@ -389,7 +403,6 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.address.location.latitude}
-                                name="address.location.latitude"
                                 error={!!touched.address?.location?.latitude && !!errors.address?.location?.latitude}
                                 helperText={touched.address?.location?.latitude && errors.address?.location?.latitude}
                                 sx={{ gridColumn: "span 2" }}
@@ -397,6 +410,8 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
             
                             {/* Location: Longitude */}
                             <TextField
+                                id="address.location.longitude"
+                                name="address.location.longitude"
                                 fullWidth
                                 variant="filled"
                                 type="number"
@@ -404,7 +419,6 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.address.location.longitude}
-                                name="address.location.longitude"
                                 error={!!touched.address?.location?.longitude && !!errors.address?.location?.longitude}
                                 helperText={touched.address?.location?.longitude && errors.address?.location?.longitude}
                                 sx={{ gridColumn: "span 2" }}
@@ -422,6 +436,8 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 renderInput={(params) => (
                                     <TextField
                                     {...params}
+                                    id="incident.date"
+                                    name="incident.date"
                                     fullWidth
                                     variant="filled"
                                     error={!!touched.date?.incident && !!errors.date?.incident}
@@ -445,11 +461,12 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
 
                             {/* Estimated Arrival Time */}
                             <TextField
+                                id="time.estimated"
+                                name="time.estimated"
                                 fullWidth
                                 type="number"
                                 variant="filled"
                                 label="Estimated Time (minutes)"
-                                name="time.estimated"
                                 value={values.time.estimated}
                                 onChange={(e) => setFieldValue("time.estimated", Number(e.target.value))}
                                 onBlur={handleBlur}
@@ -474,10 +491,11 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                 renderInput={(params) => (
                                     <TextField
                                     {...params}
+                                    id="flags.report"
+                                    name="flags.report"
                                     fullWidth
                                     variant="filled"
                                     label="Flag Report"
-                                    name="flags.report"
                                     error={!!touched.flags?.report && !!errors.flags?.report}
                                     helperText={touched.flags?.report && errors.flags?.report}
                                     />
@@ -542,10 +560,11 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                             return (
                                             <TextField
                                                 {...params}
+                                                id="responders-provider-primary"
+                                                name="responders.providers"
                                                 fullWidth
                                                 variant="filled"
                                                 label={label}
-                                                name="responders.providers"
                                                 error={
                                                 !!touched.responders?.providers && !!errors.responders?.providers
                                                 }
@@ -600,6 +619,8 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                                 renderInput={(params) => (
                                                     <TextField
                                                         {...params}
+                                                        id="responders-provider-secondary"
+                                                        name="responders.providers[1]"
                                                         fullWidth
                                                         variant="filled"
                                                         label={
@@ -607,7 +628,6 @@ const EditReportForm = ({ users, stations, report, onClose }) => {
                                                                 ? "Ambulance Provider"
                                                                 : "Firetruck Provider"
                                                         }
-                                                        name="responders.providers[1]"
                                                         error={
                                                             !!touched.responders?.providers &&
                                                             !!errors.responders?.providers?.[1]

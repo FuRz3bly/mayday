@@ -157,6 +157,8 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                         >
                             {/* First Name */}
                             <TextField
+                                id="firstName"
+                                name="firstName"
                                 fullWidth
                                 variant="filled"
                                 type="text"
@@ -164,7 +166,6 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.firstName}
-                                name="firstName"
                                 error={!!touched.firstName && !!errors.firstName}
                                 helperText={touched.firstName && errors.firstName}
                                 sx={{ gridColumn: "span 2" }}
@@ -172,6 +173,8 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                             
                             {/* Last Name */}
                             <TextField
+                                id="lastName"
+                                name="lastName"
                                 fullWidth
                                 variant="filled"
                                 type="text"
@@ -179,7 +182,6 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.lastName}
-                                name="lastName"
                                 error={!!touched.lastName && !!errors.lastName}
                                 helperText={touched.lastName && errors.lastName}
                                 sx={{ gridColumn: "span 2" }}
@@ -187,30 +189,34 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
 
                             {/* User ID (Non-editable) */}
                             <TextField
+                                id="userId"
+                                name="userId"
                                 fullWidth
                                 variant="filled"
                                 type="text"
                                 label="User ID"
                                 value={values.userId}
-                                name="userId"
                                 disabled
                                 sx={{ gridColumn: "span 4" }}
                             />
 
                             {/* Email (Non-editable) */}
                             <TextField
+                                id="email"
+                                name="email"
                                 fullWidth
                                 variant="filled"
                                 type="text"
                                 label="Email"
                                 value={values.email}
-                                name="email"
                                 disabled
                                 sx={{ gridColumn: "span 4" }}
                             />
 
                             {/* Phone */}
                             <TextField
+                                id="phone"
+                                name="phone"
                                 fullWidth
                                 variant="filled"
                                 type="text"
@@ -218,7 +224,6 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={values.phone}
-                                name="phone"
                                 error={!!touched.phone && !!errors.phone}
                                 helperText={touched.phone && errors.phone}
                                 sx={{ gridColumn: "span 2" }}
@@ -236,6 +241,8 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="birthdate"
+                                        name="birthdate"
                                         fullWidth
                                         variant="filled"
                                         error={!!touched.birthdate && !!errors.birthdate}
@@ -283,10 +290,11 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                 renderInput={(params) => (
                                     <TextField
                                     {...params}
+                                    id="role"
+                                    name="role"
                                     fullWidth
                                     variant="filled"
                                     label="Role"
-                                    name="role"
                                     error={!!touched.role && !!errors.role}
                                     helperText={touched.role && errors.role}
                                     />
@@ -312,10 +320,11 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                     renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="responderType"
+                                        name="responderType"
                                         fullWidth
                                         variant="filled"
                                         label="Responder Type"
-                                        name="roleType"
                                         error={!!touched.roleType && !!errors.roleType}
                                         helperText={touched.roleType && errors.roleType}
                                     />
@@ -342,10 +351,11 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                     renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="adminType"
+                                        name="adminType"
                                         fullWidth
                                         variant="filled"
                                         label="Admin Type"
-                                        name="roleType"
                                         error={!!touched.roleType && !!errors.roleType}
                                         helperText={touched.roleType && errors.roleType}
                                     />
@@ -358,10 +368,11 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                 <>
                                     {/* Rank */}
                                     <TextField
+                                        id="station.rank"
+                                        name="station.rank"
                                         fullWidth
                                         variant="filled"
                                         label="Rank"
-                                        name="station.rank"
                                         value={values.station?.rank || ""}
                                         onChange={(event) => 
                                             setFieldValue("station", { ...values.station, rank: event.target.value })
@@ -390,10 +401,11 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                         renderInput={(params) => (
                                             <TextField
                                                 {...params}
+                                                id="station"
+                                                name="station"
                                                 fullWidth
                                                 variant="filled"
                                                 label="Station"
-                                                name="station"
                                                 error={!!touched.station && !!errors.station}
                                                 helperText={touched.station && errors.station}
                                             />
@@ -412,10 +424,11 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
+                                        id="address.barangay"
+                                        name="address.barangay"
                                         fullWidth
                                         variant="filled"
                                         label="Barangay"
-                                        name="address.barangay"
                                         error={!!touched.address?.barangay && !!errors.address?.barangay}
                                         helperText={touched.address?.barangay && errors.address?.barangay}
                                     />
@@ -424,34 +437,37 @@ const EditUserForm = ({ user, stations, onClose, onChangePass }) => {
 
                             {/* Municipality (Pre-filled) */}
                             <TextField
+                                id="address.municipality"
+                                name="address.municipality"
                                 fullWidth
                                 variant="filled"
                                 label="Municipality"
                                 value={values.address.municipality}
-                                name="address.municipality"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
 
                             {/* Province (Pre-filled) */}
                             <TextField
+                                id="address.province"
+                                name="address.province"
                                 fullWidth
                                 variant="filled"
                                 label="Province"
                                 value={values.address.province}
-                                name="address.province"
                                 disabled
                                 sx={{ gridColumn: "span 2" }}
                             />
 
                             {/* Password Field */}
                             <TextField
+                                id="password"
+                                name="password"
                                 fullWidth
                                 variant="filled"
                                 label="Password"
                                 type="password"
                                 value={generateFakePassword()}
-                                name="password"
                                 disabled // Prevent user edits
                                 error={!!touched.password && !!errors.password}
                                 helperText={touched.password && errors.password}
